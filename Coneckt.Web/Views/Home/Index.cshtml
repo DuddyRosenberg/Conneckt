@@ -1,28 +1,40 @@
 ﻿@{ ViewData["Title"] = "Home Page"; }
 
-<div style="margin:10px">
-    <form>
-        <input id="sim" placeholder="SIM" />
-        <input id="serial" placeholder="Serial" />
-        <input id="zip" placeholder="Zip" />
+<form class="card">
 
-        <button id="add-device" type="button" class="btn btn-primary">Add Device</button>
-        <button id="activate" type="button" class="btn btn-primary">Activate</button>
+    <div class="card-header">
+        <h1><b>S</b>tupid <b>S</b>low <b>C</b>lient</h1>
+        <h7>I finnaly figured out what CSS stands for</h7>
+    </div>
 
-        <div>
-            <input id="current-min" placeholder="current MIN" />
-            <input id="current-account-number" placeholder="current account number" />
-            <input id="current-service-provider" placeholder="current service provider"
-            <input id="password" placeholder="password" />
+    <div class="row justify-content-md-center card-body">
 
-            <button id="add-device" type="button" class="btn btn-primary">Add Device</button>
-            <button id="activate" type="button" class="btn btn-primary">Activate</button>
-            <button id="internal-port" type="button" class="btn btn-primary">Internal Port</button>
-            <button id="external-port" type="button" class="btn btn-primary">External Port</button>
+        <input style="margin:2px" class="form-control" id="sim" placeholder="SIM" />
+        <input style="margin:2px" class="form-control" id="serial" placeholder="Serial" />
+
+        <div class="row justify-content-md-center">
+            <button style="margin:2px" id="add-device" type="button" class="btn btn-primary">Add Device</button>
         </div>
-    </form>
-</div>
+        <input style="margin:2px" class="form-control" id="zip" placeholder="Zip" />
 
+        <div class="row justify-content-md-center">
+            <button style="margin:2px" id="activate" type="button" class="btn btn-primary">Activate</button>
+        </div>
+
+        <input style="margin:2px" class="form-control" id="current-min" placeholder="current MIN" />
+        <input style="margin:2px" class="form-control" id="current-account-number" placeholder="current account number" />
+        <input style="margin:2px" class="form-control" id="current-service-provider" placeholder="current service provider" />
+        <input style="margin:2px" class="form-control" id="password" placeholder="password" />
+
+        <div class="row justify-content-md-center">
+            <button style="margin:2px" id="external-port" type="button" class="btn btn-primary">External Port</button>
+        </div>
+    </div>
+
+    <div class="card-footer">
+        How beutyfully is this??????????111111!!!!
+    </div>
+</form>
 
 <div>
     <h1 id="result"></h1>
