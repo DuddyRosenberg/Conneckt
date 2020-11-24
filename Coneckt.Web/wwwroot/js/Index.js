@@ -1,4 +1,10 @@
 ﻿$(() => {
+    $("#execute-bulk").click(function () {
+        $.post("/home/executebulk", function (data) {
+            $("#result").text(data);
+        })
+    })
+
     $("#add-device").click(function () {
         $('#result').text('');
 

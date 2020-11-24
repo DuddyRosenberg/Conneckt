@@ -944,7 +944,7 @@ namespace Coneckt.Web.Controllers
                             CurrentMIN = data.CurrentMIN,
                             CurrentServiceProvider = data.CurrentServiceProvider,
                         };
-                        results.Add(await ExternalPort(externelPortModel);
+                        results.Add(await ExternalPort(externelPortModel));
                         break;
                 }
             }
