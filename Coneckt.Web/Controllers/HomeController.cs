@@ -22,6 +22,7 @@ namespace Coneckt.Web.Controllers
         private string _password;
         private string _jwtAccessToken;
         private string _jwtClientID;
+        private string _connectionString;
 
         public HomeController(IConfiguration configuration)
         {
@@ -31,6 +32,7 @@ namespace Coneckt.Web.Controllers
             _password = configuration["Credentials:password"];
             _jwtAccessToken = configuration["Credentials:jwtAccessToken"];
             _jwtClientID = configuration["Credentials:jwtClientID"];
+            _connectionString = configuration.GetConnectionString("ConnectionString");
         }
 
         public IActionResult Index()
@@ -884,6 +886,70 @@ namespace Coneckt.Web.Controllers
 
             var result = await tracfone.PostAPIResponse(url, $"{auth.token_type} {auth.access_token}", portData);
             return Json(result);
+        }
+
+        public async Task<IActionResult> ExecuteBulk()
+        {
+            var results = new List<IActionResult>();
+            var repo = new Repository(_connectionString);
+            var bulkData = repo.GetAllBulkData();
+            foreach (BulkData data in bulkData)
+            {
+                switch (data.Action)
+                {
+                    case BulkAction.AddDevice:
+                        var addDeviceModel = new AddDeviceActionModel
+                        {
+                            Serial = data.Serial,
+                            Sim = data.Sim
+                        };
+                        results.Add(await AddDevice(addDeviceModel));
+                        break;
+                    case BulkAction.DeleteDevice:
+                        var deleteModel = new DeleteActionModel
+                        {
+                            Serial = data.Serial
+                        };
+                        results.Add(await DeleteDevice(deleteModel));
+                        break;
+                    case BulkAction.Activate:
+                        var activateModel = new ActivateActionModel
+                        {
+                            Serial = data.Serial,
+                            Sim = data.Sim,
+                            Zip = data.Zip
+                        };
+                        results.Add(await Activate(activateModel));
+                        break;
+                    case BulkAction.InternalPort:
+                        var internelPortModel = new PortActionModel
+                        {
+                            Serial = data.Serial,
+                            Sim = data.Sim,
+                            Zip = data.Zip,
+                            CurrentAccountNumber = data.CurrentAccountNumber,
+                            CurrentMIN = data.CurrentMIN,
+                            CurrentServiceProvider = data.CurrentServiceProvider,
+                            CurrentVKey = data.CurrentVKey
+                        };
+                        results.Add(await InternalPort(internelPortModel));
+                        break;
+                    case BulkAction.ExternalPort:
+                        var externelPortModel = new PortActionModel
+                        {
+                            Serial = data.Serial,
+                            Sim = data.Sim,
+                            Zip = data.Zip,
+                            CurrentAccountNumber = data.CurrentAccountNumber,
+                            CurrentMIN = data.CurrentMIN,
+                            CurrentServiceProvider = data.CurrentServiceProvider,
+                        };
+                        results.Add(await ExternalPort(externelPortModel);
+                        break;
+                }
+            }
+
+            return Json(results);
         }
     }
 }
