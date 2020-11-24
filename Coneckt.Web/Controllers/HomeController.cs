@@ -9,6 +9,8 @@ using Coneckt.Web.Models;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using Conneckt.Data;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Coneckt.Web.Controllers
 {
@@ -40,9 +42,9 @@ namespace Coneckt.Web.Controllers
         {
             var tracfone = new Tracfone();
             //BYOP Eligibility
-            var byopEligibilityAuthUrl = "/api/service-qualification-mgmt/v1/service-qualification";
+            var byopEligibilityAuthUrl = "api/service-qualification-mgmt/oauth/token?grant_type=client_credentials&scope=/service-qualification-mgmt";
 
-            dynamic byopEligibilityAuth = tracfone.PostAPIResponse(byopEligibilityAuthUrl, _accessToken);
+            dynamic byopEligibilityAuth = await tracfone.PostAPIResponse(byopEligibilityAuthUrl, _accessToken);
 
             var byopEligibilityUrl = "api/service-qualification-mgmt/v1/service-qualification";
             var byopEligibilityData = new BYOPEligibiltyData
@@ -117,9 +119,20 @@ namespace Coneckt.Web.Controllers
             {
                 byopEligibilityResult = await tracfone.PostAPIResponse(byopEligibilityUrl, $"{byopEligibilityAuth.token_type} {byopEligibilityAuth.access_token}", byopEligibilityData);
             }
+            JObject jEligibilityObj = JObject.Parse(byopEligibilityResult);
+            string byopEligibilityStatus = jEligibilityObj["status"]["code"].ToString();
+
+            if (byopEligibilityStatus != "200")
+            {
+                return Json(byopEligibilityResult);
+            }
 
             //BYOP Registration
-            dynamic byopRegistrationAuth = tracfone.GetBearerAuthorization(_accessToken);
+
+            //BYOP Registration Auth
+            var byopRegistrationAuthUrl = "api/resource-mgmt/oauth/token?grant_type=client_credentials&scope=/resource-mgmt";
+            dynamic byopRegistrationAuth = await tracfone.PostAPIResponse(byopRegistrationAuthUrl, _accessToken);
+
             var byopRegistrationUrl = $"api/resource-mgmt/v1/resource?client_id={_clientID}";
             var byopRegistrationData = new BYOPRegistrationData
             {
@@ -195,10 +208,17 @@ namespace Coneckt.Web.Controllers
                 }
             };
             var byopRegistrationResult = await tracfone.PostAPIResponse(byopRegistrationUrl, $"{byopRegistrationAuth.token_type} {byopRegistrationAuth.access_token}", byopRegistrationData);
+            JObject jRegistrationObj = JObject.Parse(byopRegistrationResult);
+            string byopRegistrationStatus = jRegistrationObj["status"]["code"].ToString();
+
+            if (byopRegistrationStatus != "200")
+            {
+                return Json(byopRegistrationResult);
+            }
 
             //Add Device
-            var addDeviceUrl = "";
-            dynamic addDeviceAuth = tracfone.GetJWTAuthorization(_username, _password, _jwtAccessToken);
+            var addDeviceUrl = $"api/customer-mgmt/addDeviceToAccount?client_id={_jwtClientID}";
+            dynamic addDeviceAuth = await tracfone.GetJWTAuthorization(_username, _password, _jwtAccessToken);
             var addDeviceData = new AddDeviceData
             {
                 RelatedParties = new List<RelatedParty>
@@ -271,16 +291,99 @@ namespace Coneckt.Web.Controllers
                     }
                 }
             };
-            var addDeviceResult = tracfone.PostAPIResponse(addDeviceUrl, $"{addDeviceAuth.token_type} {addDeviceAuth.access_token}", addDeviceData);
+            var addDeviceResult = await tracfone.PostAPIResponse(addDeviceUrl, $"Bearer {addDeviceAuth.access_token}", addDeviceData);
 
-            return Json("");
+            return Json(addDeviceResult);
+        }
+
+        public async Task<IActionResult> DeleteDevice(DeleteActionModel model)
+        {
+            var tracfone = new Tracfone();
+
+            var url = $"api/customer-mgmt/deleteDeviceAccount?client_id={_jwtClientID}";
+            var auth = await tracfone.GetJWTAuthorization(_username, _password, _jwtAccessToken);
+            var data = new AddDeviceData
+            {
+                RelatedParties = new List<RelatedParty>
+                {
+                    new RelatedParty
+                    {
+                        Party=new Party
+                        {
+                            PartyID= "",
+                            LanguageAbility= "ENG",
+                            PartyExtension=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name= "vendorName",
+                                    Value= "1231234234424"
+                                },
+                                new Extension
+                                {
+                                    Name= "vendorStore",
+                                    Value= "1231234234424"
+                                },
+                                new Extension
+                                {
+                                    Name="vendorTerminal",
+                                    Value= "1231234234424"
+                                },
+                                new Extension
+                                {
+                                    Name= "sourceSystem",
+                                    Value= "EBP"
+                                },
+                                new Extension
+                                {
+                                     Name= "accountEmail",
+                                     Value= _username
+                                },
+                                new Extension
+                                {
+                                    Name= "partyTransactionID",
+                                    Value= "indirect_1231234234424"
+                                }
+                            }
+                        },
+                        RoleType="partner"
+                     }
+                },
+                CustomerAccounts = new List<CustomerAccount>
+                {
+                    new CustomerAccount
+                    {
+                        Action="DELETE_DEVICE",
+                        CustomerProducts=new List<CustomerProduct>
+                        {
+                            new CustomerProduct
+                            {
+                                Product=new Product
+                                {
+                                    ProductSerialNumber=model.Serial,
+                                    ProductStatus= "ACTIVE",
+                                    AccountId= "681177314",
+                                    ProductCategory= "HANDSET",
+                                    ProductSpecification=new Specification
+                                    {
+                                        Brand="CLEARWAY"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var result = await tracfone.PostAPIResponse(url, $"Bearer {auth.access_token}", data);
+            return Json(result);
         }
 
         public async Task<IActionResult> Activate(ActivateActionModel model)
         {
             Tracfone tracfone = new Tracfone();
             var url = $"api/order-mgmt/v1/serviceorder?client_id={_clientID}";
-            var auth = await tracfone.GetBearerAuthorization(_accessToken);
+            var auth = await tracfone.GetOrderMgmtAuthorization(_accessToken);
             var activateData = new ServiceData
             {
                 OrderDate = "2016-04-16T16:42:23-04:00",
@@ -379,7 +482,7 @@ namespace Coneckt.Web.Controllers
         {
             Tracfone tracfone = new Tracfone();
             var url = $"api/order-mgmt/v1/serviceorder?client_id={_clientID}";
-            var auth = await tracfone.GetBearerAuthorization(_accessToken);
+            var auth = await tracfone.GetOrderMgmtAuthorization(_accessToken);
             var portData = new ServiceData
             {
                 OrderDate = "2016-04-16T16:42:23-04:00",
@@ -481,7 +584,7 @@ namespace Coneckt.Web.Controllers
                     {
                         new SupportingResource
                         {
-                            ResourceIdentifier="",
+                            ProductIdentifier="",
                             ResourceType="AIRTIME_CARD"
                         },
                         new SupportingResource
@@ -579,6 +682,207 @@ namespace Coneckt.Web.Controllers
 
             var result = await tracfone.PostAPIResponse(url, $"{auth.token_type} {auth.access_token}", portData);
 
+            return Json(result);
+        }
+
+        public async Task<IActionResult> InternalPort(PortActionModel model)
+        {
+            Tracfone tracfone = new Tracfone();
+            var url = $"api/order-mgmt/v1/serviceorder?client_id={_clientID}";
+            var auth = await tracfone.GetOrderMgmtAuthorization(_accessToken);
+            var portData = new ServiceData
+            {
+                OrderDate = "2016-04-16T16:42:23-04:00",
+                RelatedParties = new List<RelatedParty>
+                {
+                    new RelatedParty
+                    {
+                        RoleType = "partner",
+                        Party=new Party
+                        {
+                            PartyExtension=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name = "partyTransactionID",
+                                    Value = "84306270-c4cd-4142-b41a-311b63b70074"
+                                },
+                                new Extension
+                                {
+                                    Name = "sourceSystem",
+                                    Value = "WEB"
+                                },
+                                new Extension
+                                {
+                                    Name="vendorStore",
+                                    Value="302"
+                                },
+                                new Extension
+                                {
+                                    Name="vendorTerminal",
+                                    Value="302"
+                                }
+                            },
+                            PartyID = "Approvedlink",
+                            LanguageAbility = "ENG",
+                        }
+                    },
+                    new RelatedParty
+                    {
+                        RoleType = "customer",
+                        Party =new Party
+                        {
+                            Individual = new Individual
+                            {
+                                ID = "681177314"
+                            },
+                            PartyExtension=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name = "accountEmail",
+                                    Value = _username
+                                },
+                                new Extension
+                                {
+                                     Name= "accountPassword",
+                                     Value= ""
+                                }
+                            }
+                        }
+                    }
+                },
+                ExternalID = "123",
+                OrderItems = new List<OrderItem>
+                {
+                    new OrderItem
+                {
+                Product = new Product
+                {
+                    SubCategory = "BRANDED",
+                    ProductCategory = "HANDSET",
+                    ProductSpecification = new Specification
+                    {
+                        Brand = "CLEARWAY"
+                    },
+                    ProductCharacteristics=new List<Extension>
+                    {
+                        new Extension
+                        {
+                             Name= "manufacturer",
+                             Value= "APPLE"
+                        },
+                        new Extension
+                        {
+                            Name= "model",
+                            Value= "MKRD2LL/A"
+                        }
+                    },
+                    RelatedServices = new List<RelatedService>
+                    {
+                        new RelatedService
+                        {
+                            ID="",
+                            Category="SERVICE_PLAN"
+                        }
+                    },
+                    ProductSerialNumber = model.Serial,
+                    SupportingResources = new List<SupportingResource>
+                    {
+                        new SupportingResource
+                        {
+                            ProductIdentifier="",
+                            ResourceType="AIRTIME_CARD"
+                        },
+                        new SupportingResource
+                        {
+                             SerialNumber=model.Sim,
+                             ResourceType="SIM_CARD"
+                        }
+                    }
+                },
+                ID = "1",
+                Location = new Location
+                {
+                    PostalAddress = new PostalAddress
+                    {
+                        Zipcode = model.Zip
+                    }
+                },
+                Action = "PORT",
+                OrderItemExtension=new List<Extension>
+                {
+                      new Extension
+                      {
+                          Name= "currentMIN",
+                          Value= model.CurrentMIN
+                },
+                            new Extension
+                {
+                          Name= "currentServiceProvider",
+                          Value= model.CurrentServiceProvider
+                },
+                            new Extension
+                {
+                          Name= "currentCarrierType",
+                          Value= "Wireless"
+                },
+                            new Extension
+                {
+                         Name= "currentAccountNumber",
+                         Value= model.CurrentAccountNumber
+                },
+                            new Extension
+                {
+                  Name= "houseNumber",
+                  Value= "1259"
+                },
+                            new Extension
+                {
+                  Name= "currentAddressLine1",
+                  Value= "Unit 1295"
+                },
+                            new Extension
+                {
+                  Name= "streetName",
+                  Value= "Charleston Road"
+                },
+                            new Extension
+                {
+                  Name= "streetType",
+                  Value = "RD"
+                },
+                            new Extension
+                {
+                  Name= "currentAddressCity",
+                  Value= "Miami"
+                },
+                            new Extension
+                {
+                  Name= "currentAddressState",
+                  Value= "FL"
+                },
+                    new Extension
+                    {
+                        Name = "currentAddressZip",
+                        Value = "33178"
+                    },
+                    new Extension
+                    {
+                        Name = "currentFullName",
+                        Value = "Cyber Source"
+                    },
+                    new Extension
+                    {
+                        Name = "contactPhone",
+                        Value = "3051380236"
+                    }
+                }
+              }
+            }
+            };
+
+            var result = await tracfone.PostAPIResponse(url, $"{auth.token_type} {auth.access_token}", portData);
             return Json(result);
         }
     }

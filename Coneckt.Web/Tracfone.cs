@@ -23,7 +23,7 @@ namespace Coneckt.Web
         }
 
         //Overload for request with data
-        public async Task<dynamic> PostAPIResponse(string url, string auth, object data)
+        public async Task<string> PostAPIResponse(string url, string auth, object data)
         {
             var client = new HttpClient();
             client.BaseAddress = new Uri("https://apigateway.tracfone.com");
@@ -37,10 +37,10 @@ namespace Coneckt.Web
 
             var response = await client.PostAsync(url, sendingData);
             var responseData = response.Content.ReadAsStringAsync().Result;
-            return JObject.Parse(responseData);
+            return responseData;
         }
 
-        public async Task<dynamic> GetBearerAuthorization(string accessToken)
+        public async Task<dynamic> GetOrderMgmtAuthorization(string accessToken)
         {
             var url = "api/order-mgmt/oauth/token?grant_type=client_credentials&scope=/order-mgmt";
             return await PostAPIResponse(url, accessToken);
