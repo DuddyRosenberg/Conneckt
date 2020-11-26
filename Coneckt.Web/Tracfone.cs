@@ -31,7 +31,6 @@ namespace Coneckt.Web
             _jwtClientID = configuration["Credentials:jwtClientID"];
         }
 
-        #region DiffrentActions
         public async Task<dynamic> CheckBYOPEligibility(string serial)
         {
             var url = "api/service-qualification-mgmt/v1/service-qualification";
@@ -104,7 +103,7 @@ namespace Coneckt.Web
                 }
             };
 
-            return await PostAPIResponse(url, $"{auth.token_type} {auth.access_token}", data);
+            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
         }
 
         public async Task<dynamic> BYOPRegistration(AddDeviceActionModel model)
@@ -185,13 +184,13 @@ namespace Coneckt.Web
                 }
             };
 
-            return await PostAPIResponse(url, $"{auth.token_type} {auth.access_token}", data);
+            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
         }
 
         public async Task<dynamic> AddDevice(string serial)
         {
             var url = $"api/customer-mgmt/addDeviceToAccount?client_id={_jwtClientID}";
-            var auth = await _authorizations.GetCustomerMgmtJWT();
+            var auth = await _authorizations.GetServiceMgmtJWT();
             var data = new AddDeviceData
             {
                 RelatedParties = new List<RelatedParty>
@@ -265,13 +264,13 @@ namespace Coneckt.Web
                 }
             };
 
-            return await PostAPIResponse(url, $"Bearer {auth.access_token}", data);
+            return await TracfoneAPI.PostAPIResponse(url, $"Bearer {auth.AccessToken}", data);
         }
 
         public async Task<dynamic> DeleteDevice(string serial)
         {
             var url = $"api/customer-mgmt/deleteDeviceAccount?client_id={_jwtClientID}";
-            var auth = await _authorizations.GetCustomerMgmtJWT();
+            var auth = await _authorizations.GetServiceMgmtJWT();
             var data = new AddDeviceData
             {
                 RelatedParties = new List<RelatedParty>
@@ -345,7 +344,7 @@ namespace Coneckt.Web
                 }
             };
 
-            return await PostAPIResponse(url, $"Bearer {auth.access_token}", data);
+            return await TracfoneAPI.PostAPIResponse(url, $"Bearer {auth.AccessToken}", data);
         }
 
         public async Task<dynamic> Activate(ActivateActionModel model)
@@ -443,7 +442,7 @@ namespace Coneckt.Web
                 }
             };
 
-            return await PostAPIResponse(url, $"{auth.token_type} {auth.access_token}", data);
+            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
         }
 
         public async Task<dynamic> ExternalPort(PortActionModel model)
@@ -647,7 +646,7 @@ namespace Coneckt.Web
             }
             };
 
-            return await PostAPIResponse(url, $"{auth.token_type} {auth.access_token}", data);
+            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
         }
 
         public async Task<dynamic> InternalPort(PortActionModel model)
@@ -846,37 +845,37 @@ namespace Coneckt.Web
             }
             };
 
-            return await PostAPIResponse(url, $"{auth.token_type} {auth.access_token}", data);
-        }
-        #endregion
-
-        //Post to Tracfone API without data
-        public static async Task<dynamic> PostAPIResponse(string url, string auth)
-        {
-            var client = new HttpClient();
-            client.BaseAddress = new Uri("https://apigateway.tracfone.com");
-            client.DefaultRequestHeaders.Add("Authorization", auth);
-            var response = await client.PostAsync(url, null);
-            var responseData = response.Content.ReadAsStringAsync().Result;
-            return JObject.Parse(responseData);
+            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
         }
 
-        //Overload post for request with data
-        public static async Task<dynamic> PostAPIResponse(string url, string auth, object data)
+        public async Task<dynamic> GetAccountDetails(int offset, int limit)
         {
-            var client = new HttpClient();
-            client.BaseAddress = new Uri("https://apigateway.tracfone.com");
-            client.DefaultRequestHeaders.Add("Authorization", auth);
-            //convert to json
-            JsonSerializerSettings settings = new JsonSerializerSettings();
-            settings.NullValueHandling = NullValueHandling.Ignore;
-            settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            var jsonString = JsonConvert.SerializeObject(data, settings);
-            var sendingData = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            var url = $@"api/customer-mgmt/account/{_email}
+                            ?brand=CLEARWAY
+                            &source=EBP
+                            &channel=WEB
+                            &offset={offset}
+                            &limit={limit}
+                            &order-by=desc
+                            &client_id={_jwtClientID}
+                            &email={_email}";
+            var auth = await _authorizations.GetServiceMgmtJWT();
 
-            var response = await client.PostAsync(url, sendingData);
-            var responseData = response.Content.ReadAsStringAsync().Result;
-            return JObject.Parse(responseData);
+            return await TracfoneAPI.GetAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}");
+        }
+
+        public async Task<dynamic> GetBalance(string phoneNumber)
+        {
+            var url = $@"api/service-mgmt/v1/service/balance
+                            ?client_id={_jwtClientID}
+                            &type=LINE
+                            &identifier={phoneNumber}
+                            &sourceSystem=EBP
+                            &brandName=Clearway
+                            &language=ENG ";
+            var auth = await _authorizations.GetServiceMgmtJWT();
+
+            return await TracfoneAPI.GetAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}");
         }
     }
 }

@@ -12,6 +12,7 @@ using Conneckt.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Options;
+using System.IO;
 
 namespace Coneckt.Web.Controllers
 {
@@ -83,6 +84,18 @@ namespace Coneckt.Web.Controllers
         public async Task<IActionResult> InternalPort(PortActionModel model)
         {
             var result = await _tracfone.InternalPort(model);
+            return Json(result);
+        }
+
+        public async Task<IActionResult> GetAccountDetails(GetAccountDetailsActionModel model)
+        {
+            var result = await _tracfone.GetAccountDetails(model.Offset, model.Limit);
+            return View(result);
+        }
+
+        public async Task<IActionResult> GetBalance(GetBalanceActionModel model)
+        {
+            var result = await _tracfone.GetBalance(model.PhoneNumber);
             return Json(result);
         }
 

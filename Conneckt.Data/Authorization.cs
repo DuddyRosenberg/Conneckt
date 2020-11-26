@@ -6,8 +6,8 @@ namespace Conneckt.Data
 {
     public class Authorization
     {
-        public string token_type { get; set; }
-        public string access_token { get; set; }
-        public DateTime exp_dateTime { get; set; }
+        public string TokenType { get; set; }
+        public string AccessToken { get; set; }
+        public DateTime Expires { get; set; }
     }
 }

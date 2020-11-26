@@ -129,4 +129,12 @@
             }
         });
     });
+
+    $("#get-balance").on('click', () => {
+        let phoneNumber = $("#phone-number").val();
+
+        $.get('/home/getBalance', (data) => {
+            $("#result").text(data);
+        })
+    })
 })

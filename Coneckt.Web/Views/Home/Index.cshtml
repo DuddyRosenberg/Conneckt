@@ -5,6 +5,7 @@
         <h7>Use the button for the action you'd like to achieve. Fill out all previous form fields for the action to work.</h7>
     </div>
     <div class="row card-body">
+        <a href="/home/GetAccountDetails" class="btn btn-link">Get Account Details</a>
         <button style="margin:2px" id="execute-bulk" type="button" class="btn btn-secondary">Execute Bulk</button>
         <input style="margin:2px" class="form-control" id="serial" placeholder="Serial" />
         <button style="margin:2px" id="delete-device" type="button" class="btn btn-danger">Delete Device</button>
@@ -25,6 +26,10 @@
         Coming Soon: Bulk updates and Delete, Deactivate, Account Details and Sim Change actions.
     </div>
 </form>
+<div>
+    <input class="form-control" id="phone-number" placeholder="Phone Number" />
+    <button class="btn btn-primary" id="get-balance">Get Balance</button>
+</div>
 <div>
     <h1 id="result"></h1>
 </div>
