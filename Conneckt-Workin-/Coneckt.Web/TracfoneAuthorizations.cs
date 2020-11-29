@@ -61,6 +61,13 @@ namespace Coneckt.Web
 
             return await GetOrAddJWTAuth(path, url);
         }
+        public async Task<Authorization> GetCustomerMgmtJWT()
+        {
+            var path = "CustomerMgmtJWT";
+            var url = "api/customer-mgmt/oauth/token/ro";
+
+            return await GetOrAddJWTAuth(path, url);
+        }
 
         private async Task<Authorization> GetOrAddAuth(string path, string url)
         {
@@ -75,7 +82,7 @@ namespace Coneckt.Web
                 {
                     TokenType = response.token_type,
                     AccessToken = response.access_token,
-                    Expires = DateTime.Now.AddSeconds(double.Parse(response.expires_in))
+                    Expires = DateTime.Now.AddSeconds((double) response.expires_in)
                 };
                 authorizations[path] = auth;
                 var newJsonString = JsonConvert.SerializeObject(authorizations);
@@ -93,11 +100,13 @@ namespace Coneckt.Web
             if (auth.Expires < DateTime.Now)
             {
                 var response = await TracfoneAPI.PostAPIResponse(url, _jwtAccessToken, _username, _password);
+                double expires = response.expires_in;
+
                 auth = new Authorization
                 {
                     TokenType = response.token_type,
                     AccessToken = response.access_token,
-                    Expires = DateTime.Now.AddSeconds(double.Parse(response.expires_in))
+                    Expires = DateTime.Now.AddSeconds((double) response.expires_in)
                 };
                 authorizations[path] = auth;
                 var newJsonString = JsonConvert.SerializeObject(authorizations);

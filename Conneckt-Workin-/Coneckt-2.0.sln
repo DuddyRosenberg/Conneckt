@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30330.147
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coneckt.Web", "Coneckt.Web\Coneckt.Web.csproj", "{2833ED36-9A18-47B6-8F33-8998356796D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coneckt.Web", "Coneckt.Web\Coneckt.Web.csproj", "{2833ED36-9A18-47B6-8F33-8998356796D9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Conneckt.Data", "Conneckt.Data\Conneckt.Data.csproj", "{3CE74F3E-B1AE-470C-993C-462E93BD7077}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Conneckt.Data", "Conneckt.Data\Conneckt.Data.csproj", "{3CE74F3E-B1AE-470C-993C-462E93BD7077}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

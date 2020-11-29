@@ -6,6 +6,7 @@ namespace Conneckt.Data
 {
     public class BulkData
     {
+        public int ID { get; set; }
         public BulkAction Action { get; set; }
         public string Zip { get; set; }
         public string Serial { get; set; }

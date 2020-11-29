@@ -190,7 +190,7 @@ namespace Coneckt.Web
         public async Task<dynamic> AddDevice(string serial)
         {
             var url = $"api/customer-mgmt/addDeviceToAccount?client_id={_jwtClientID}";
-            var auth = await _authorizations.GetServiceMgmtJWT();
+            var auth = await _authorizations.GetCustomerMgmtJWT();
             var data = new AddDeviceData
             {
                 RelatedParties = new List<RelatedParty>
@@ -270,7 +270,7 @@ namespace Coneckt.Web
         public async Task<dynamic> DeleteDevice(string serial)
         {
             var url = $"api/customer-mgmt/deleteDeviceAccount?client_id={_jwtClientID}";
-            var auth = await _authorizations.GetServiceMgmtJWT();
+            var auth = await _authorizations.GetCustomerMgmtJWT();
             var data = new AddDeviceData
             {
                 RelatedParties = new List<RelatedParty>
@@ -850,32 +850,32 @@ namespace Coneckt.Web
 
         public async Task<dynamic> GetAccountDetails(int offset, int limit)
         {
-            var url = $@"api/customer-mgmt/account/{_email}
-                            ?brand=CLEARWAY
-                            &source=EBP
-                            &channel=WEB
-                            &offset={offset}
-                            &limit={limit}
-                            &order-by=desc
-                            &client_id={_jwtClientID}
-                            &email={_email}";
-            var auth = await _authorizations.GetServiceMgmtJWT();
+            var url = $"api/customer-mgmt/account/{_email}" +
+                            "?brand=CLEARWAY" +
+                            "&source=EBP" +
+                            "&channel=WEB" +
+                            $"&offset={offset}" +
+                            $"&limit={limit}" +
+                            "&order-by=desc" +
+                            $"&client_id={_jwtClientID}" +
+                            $"&email={_email}";
+            var auth = await _authorizations.GetCustomerMgmtJWT();
 
-            return await TracfoneAPI.GetAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}");
+            return await TracfoneAPI.GetAPIResponse(url, $"Bearer {auth.AccessToken}");
         }
 
         public async Task<dynamic> GetBalance(string phoneNumber)
         {
-            var url = $@"api/service-mgmt/v1/service/balance
-                            ?client_id={_jwtClientID}
-                            &type=LINE
-                            &identifier={phoneNumber}
-                            &sourceSystem=EBP
-                            &brandName=Clearway
-                            &language=ENG ";
+            var url = $@"api/service-mgmt/v1/service/balance" +
+                            $"?client_id={_jwtClientID}" + 
+                            "&type=LINE" + 
+                            $"&identifier={phoneNumber}" + 
+                            "&sourceSystem=EBP" +
+                            "&brandName=Clearway" +
+                            "&language=ENG ";
             var auth = await _authorizations.GetServiceMgmtJWT();
 
-            return await TracfoneAPI.GetAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}");
+            return await TracfoneAPI.GetAPIResponse(url, $"Bearer {auth.AccessToken}");
         }
     }
 }

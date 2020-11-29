@@ -19,7 +19,7 @@ namespace Conneckt.Data
             using (var connection = new OleDbConnection(_connectionString))
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT * FROM BULK";
+                command.CommandText = "SELECT * FROM bulkaction";
                 connection.Open();
                 var reader = command.ExecuteReader();
 
@@ -27,6 +27,7 @@ namespace Conneckt.Data
                 {
                     bulkData.Add(new BulkData
                     {
+                        ID = (int)reader["ID"],
                         Action = (BulkAction)reader["Action"],
                         Zip = reader.Get<string>("Zip"),
                         Serial = reader.Get<string>("Serial"),
