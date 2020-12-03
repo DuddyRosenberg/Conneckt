@@ -147,6 +147,7 @@ namespace Coneckt.Web.Controllers
                                 Serial = data.Serial,
                                 Sim = data.Sim
                             };
+                            string addDeviceResults = "";
 
                             //BYOP Eligibility
                             dynamic byopEligibilityResult = null;
@@ -159,7 +160,7 @@ namespace Coneckt.Web.Controllers
                             if (byopEligibilityStatus != "0" && byopEligibilityStatus != "10008" && byopEligibilityStatus != "11023")
                             {
                                 byopEligibilityResult["request"] = "BYOP Eligibility Failed";
-                                repo.WriteResponse(data.ID, JsonConvert.SerializeObject(byopEligibilityResult));
+                                addDeviceResults += JsonConvert.SerializeObject(byopEligibilityResult);
                                 results.Add(byopEligibilityResult);
                                 break;
                             }
@@ -169,7 +170,7 @@ namespace Coneckt.Web.Controllers
                             {
                                 //Add Device
                                 var addDeviceResult2 = await _tracfone.AddDevice(addDeviceModel.Serial);
-                                repo.WriteResponse(data.ID, JsonConvert.SerializeObject(addDeviceResult2));
+                                addDeviceResults += JsonConvert.SerializeObject(addDeviceResult2);
                                 results.Add(addDeviceResult2);
                                 break;
                             }
@@ -181,22 +182,24 @@ namespace Coneckt.Web.Controllers
                             if (byopRegistrationStatus != "0")
                             {
                                 byopRegistrationResult["request"] = "BYOP Registration Failed";
-                                repo.WriteResponse(data.ID, JsonConvert.SerializeObject(byopRegistrationResult));
+                                addDeviceResults += JsonConvert.SerializeObject(byopRegistrationResult);
                                 results.Add(byopRegistrationResult);
                                 break;
                             }
 
                             //Add Device
                             var addDeviceResult = await _tracfone.AddDevice(addDeviceModel.Serial);
-                            repo.WriteResponse(data.ID, JsonConvert.SerializeObject(addDeviceResult));
-                            results.Add(addDeviceResult);
+                            addDeviceResults += JsonConvert.SerializeObject(addDeviceResult);
+                            data.response = addDeviceResults;
+
+                            results.Add(addDeviceResults);
 
                             break;
                         case BulkAction.DeleteDevice:
                             var deleteSerial = data.Serial;
 
                             var deleteResp = await _tracfone.DeleteDevice(deleteSerial);
-                            repo.WriteResponse(data.ID, JsonConvert.SerializeObject(deleteResp));
+                            data.response = JsonConvert.SerializeObject(deleteResp);
                             results.Add(deleteResp);
                             break;
                         case BulkAction.Activate:
@@ -208,7 +211,7 @@ namespace Coneckt.Web.Controllers
                             };
 
                             var activateResp = await _tracfone.Activate(activateModel);
-                            repo.WriteResponse(data.ID, JsonConvert.SerializeObject(activateResp));
+                            data.response = JsonConvert.SerializeObject(activateResp);
                             results.Add(activateResp);
                             break;
                         case BulkAction.InternalPort:
@@ -224,7 +227,7 @@ namespace Coneckt.Web.Controllers
                             };
 
                             var iportResp = await _tracfone.InternalPort(internelPortModel);
-                            repo.WriteResponse(data.ID, JsonConvert.SerializeObject(iportResp));
+                            data.response = JsonConvert.SerializeObject(iportResp);
                             results.Add(iportResp);
                             break;
                         case BulkAction.ExternalPort:
@@ -239,7 +242,7 @@ namespace Coneckt.Web.Controllers
                             };
 
                             var eportResp = await _tracfone.ExternalPort(externelPortModel);
-                            repo.WriteResponse(data.ID, JsonConvert.SerializeObject(eportResp));
+                            data.response = JsonConvert.SerializeObject(eportResp);
                             results.Add(eportResp);
                             break;
                         case BulkAction.ChangeSIM:
@@ -251,23 +254,23 @@ namespace Coneckt.Web.Controllers
                             };
 
                             var changeSIMResp = await _tracfone.ChangeSIM(changeSIMModel);
-                            repo.WriteResponse(data.ID, JsonConvert.SerializeObject(changeSIMResp));
+                            data.response = JsonConvert.SerializeObject(changeSIMResp);
                             results.Add(changeSIMResp);
                             break;
                         case BulkAction.DeactivateAndRetaineDays:
                             var deactivateAndRetaineDaysReponse = await _tracfone.DeactivateAndRetaineDays(data.Serial);
-                            repo.WriteResponse(data.ID, JsonConvert.SerializeObject(deactivateAndRetaineDaysReponse));
+                            data.response = JsonConvert.SerializeObject(deactivateAndRetaineDaysReponse);
                             results.Add(deactivateAndRetaineDaysReponse);
                             break;
                         case BulkAction.DeactivatePastDue:
                             var deactivatePastDueResponse = await _tracfone.DeactivatePastDue(data.Serial);
-                            repo.WriteResponse(data.ID, JsonConvert.SerializeObject(deactivatePastDueResponse));
+                            data.response = JsonConvert.SerializeObject(deactivatePastDueResponse);
                             results.Add(deactivatePastDueResponse);
                             break;
                     }
                 }
             }
-
+            repo.WriteAllResponse(bulkData);
             return Json(results);
         }
     }

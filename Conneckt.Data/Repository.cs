@@ -44,19 +44,21 @@ namespace Conneckt.Data
             }
         }
 
-        public void WriteResponse(int id, string response)
+        public void WriteAllResponse(List<BulkData> bulkDatas)
         {
             using (OleDbConnection connection = new OleDbConnection(_connectionString))
             {
-                OleDbCommand cmd = new OleDbCommand();
+                OleDbCommand cmd = connection.CreateCommand();
                 cmd.CommandText = $"UPDATE bulkaction SET Response = @response, Done = true WHERE ID = @id";
-                cmd.Parameters.AddWithValue("@response", response);
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.Connection = connection;
                 connection.Open();
-                cmd.ExecuteNonQuery();
-            }
 
+                foreach (BulkData data in bulkDatas)
+                {
+                    cmd.Parameters["@response"].Value = data.response;
+                    cmd.Parameters["@id"].Value = data.ID;
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
     }
 

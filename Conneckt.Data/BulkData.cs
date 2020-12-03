@@ -16,5 +16,6 @@ namespace Conneckt.Data
         public string CurrentAccountNumber { get; set; }
         public string CurrentVKey { get; set; }
         public bool Done { get; set; }
+        public string response { get; set; }
     }
 }
