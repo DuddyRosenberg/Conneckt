@@ -1,0 +1,48 @@
+﻿@{ ViewData["Title"] = "Home Page"; }
+<form>
+    <div class="card">
+        <div class="card-header">
+            <h1>Connekt PVC Client</h1>
+            <h7>Use the button for the action you'd like to achieve. Fill out all previous form fields for the action to work.</h7>
+        </div>
+        <div class="row card-body">
+            <input style="margin:2px" class="form-control" id="serial" placeholder="Serial" />
+            <button style="margin:2px" id="delete-device" type="button" class="btn btn-primary">Delete Device</button>
+            <button style="margin:2px" id="deactivate-and-retaine-days" type="button" class="btn btn-primary">Deactiva And Retaine Days</button>
+            <button style="margin:2px" id="deactivate-past-due" type="button" class="btn btn-primary">Deactivate Past Due</button>
+            <input style="margin:2px" class="form-control" id="sim" placeholder="SIM" />
+            <button style="margin:2px" id="add-device" type="button" class="btn btn-primary">Add Device</button>
+            <div class="divider"></div>
+            <input style="margin:2px" class="form-control" id="zip" placeholder="Zip" />
+            <button style="margin:2px" id="activate" type="button" class="btn btn-primary">Activate</button>
+            <button style="margin:2px" id="change-sim" type="button" class="btn btn-primary">Change SIM</button>
+            <div class="divider"></div>
+            <input style="margin:2px" class="form-control" id="current-min" placeholder="current MIN" />
+            <input style="margin:2px" class="form-control" id="current-account-number" placeholder="current account number" />
+            <input style="margin:2px" class="form-control" id="current-service-provider" placeholder="current service provider" />
+            <button style="margin:2px" id="internal-port" type="button" class="btn btn-primary">Internal Port</button>
+            <input style="margin:2px" class="form-control" id="v-key" placeholder="V Key" />
+            <button style="margin:2px" id="external-port" type="button" class="btn btn-primary">External Port</button>
+        </div>
+    </div>
+    <div class="card mt-4">
+        <div class="row card-body">
+            <input style="margin:2px" class="form-control" id="phone-number" placeholder="Phone Number" />
+            <button style="margin:2px" class="btn btn-primary" id="get-balance">Get Balance</button>
+        </div>
+    </div>
+    <div class="card mt-4">
+        <div class="row card-body">
+            <a style="margin:5px; margin-left: 2px;" href="/home/GetAccountDetails" class="btn btn-primary">Get Account Details</a>
+            <button style="margin:5px; margin-left: 2px;" id="execute-bulk" type="button" class="btn btn-success">Execute Bulk</button>
+        </div>
+    </div>
+</form>
+<div>
+    <p class="results-label">Results</p>
+    <div id="result"></div>
+</div>
+@section scripts{
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="~/js/index.js"></script>
+}

@@ -10,5 +10,6 @@ namespace Conneckt.Data
         public List<RelatedParty> RelatedParties { get; set; }
         public string ExternalID { get; set; }
         public List<OrderItem> OrderItems { get; set; }
+        public Location Location { get; set; }
     }
 }

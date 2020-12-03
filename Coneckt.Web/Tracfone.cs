@@ -867,15 +867,236 @@ namespace Coneckt.Web
         public async Task<dynamic> GetBalance(string phoneNumber)
         {
             var url = $@"api/service-mgmt/v1/service/balance" +
-                            $"?client_id={_jwtClientID}" + 
-                            "&type=LINE" + 
-                            $"&identifier={phoneNumber}" + 
+                            $"?client_id={_jwtClientID}" +
+                            "&type=LINE" +
+                            $"&identifier={phoneNumber}" +
                             "&sourceSystem=EBP" +
                             "&brandName=Clearway" +
                             "&language=ENG ";
             var auth = await _authorizations.GetServiceMgmtJWT();
 
             return await TracfoneAPI.GetAPIResponse(url, $"Bearer {auth.AccessToken}");
+        }
+
+        public async Task<dynamic> ChangeSIM(ActivateActionModel model)
+        {
+            var url = $"api/order-mgmt/v2/serviceorder?client_id={_clientID}";
+            var auth = await _authorizations.GetOrderMgmt();
+            var data = new ServiceData
+            {
+                ExternalID = "123456",
+                OrderDate = "2017-08-10T12:18:46-0400",
+                RelatedParties = new List<RelatedParty>
+                {
+                    new RelatedParty
+                    {
+                        Party=new Party
+                        {
+                            PartyID="vendor name",
+                            LanguageAbility="ENG",
+                            PartyExtension=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name="partyTransactionID",
+                                    Value="1231234234424"
+                                },
+                                new Extension
+                                {
+                                    Name="sourceSystem",
+                                    Value="EBP"
+                                }
+                            }
+                        },
+                        RoleType= "partner"
+                    }
+                },
+                OrderItems = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        Action="SIM_CHANGE",
+                        ID="1",
+                        Quantity=1,
+                        Product=new Product
+                        {
+                            ProductSerialNumber=model.Serial,
+                            ProductCategory="HANDSET",
+                            ProductSpecification=new Specification
+                            {
+                                Brand= "CLEARWAY"
+                            },
+                            SupportingResources=new List<SupportingResource>
+                            {
+                                new SupportingResource
+                                {
+                                    ResourceType="SIM_CARD",
+                                    SerialNumber=model.Sim
+                                }
+                            }
+                        },
+                        OrderItemExtension=new List<Extension>
+                        {
+                            new Extension
+                            {
+                                Name="currentMin",
+                                Value= "3629704046"
+                            }
+                        }
+                    }
+                },
+                Location = new Location
+                {
+                    PostalAddress = new PostalAddress
+                    {
+                        Zipcode = model.Zip
+                    }
+                }
+            };
+
+            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+        }
+
+        public async Task<dynamic> DeactivateAndRetaineDays(string serial)
+        {
+            var url = $"api/order-mgmt/v2/serviceorder?client_id={_clientID}";
+            var auth = await _authorizations.GetOrderMgmt();
+            var data = new ServiceData
+            {
+                OrderDate = "2016-04-16T16:42:23-04:00",
+                RelatedParties = new List<RelatedParty>
+                {
+                    new RelatedParty
+                    {
+                        RoleType="partner",
+                        Party=new Party
+                        {
+                            PartyExtension=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name="partyTransactionID",
+                                    Value="28fed77a-aa9e-4738-af47-e3db34fc7b58"
+                                },
+                                new Extension
+                                {
+                                    Name="sourceSystem",
+                                    Value= "EBP"
+                                }
+                            },
+                            PartyID= "Approved Link",
+                            LanguageAbility= "ENG",
+                        }
+                    }
+                },
+                OrderItems = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        ID="1",
+                        Product=new Product
+                        {
+                            SubCategory="BRANDED",
+                            ProductCategory="HANDSET",
+                            ProductSpecification=new Specification
+                            {
+                                Brand="CLEARWAY"
+                            },
+                            ProductSerialNumber=serial,
+                        },
+                        Action="DEACTIVATION",
+                        Location=new Location
+                        {
+                            PostalAddress=new PostalAddress
+                            {
+                                Zipcode="31088"
+                            }
+                        },
+                        OrderItemExtension=new List<Extension>
+                        {
+                            new Extension
+                            {
+                                Name= "reason",
+                                Value="CUSTOMER REQD"
+                            }
+                        }
+                    }
+                },
+                ExternalID = "123"
+            };
+
+            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+        }
+
+        public async Task<dynamic> DeactivatePastDue(string serial)
+        {
+            var url = $"api/order-mgmt/v2/serviceorder?client_id={_clientID}";
+            var auth = await _authorizations.GetOrderMgmt();
+            var data = new ServiceData
+            {
+                OrderDate = "2016-04-16T16:42:23-04:00",
+                RelatedParties = new List<RelatedParty>
+                {
+                    new RelatedParty
+                    {
+                        RoleType= "partner",
+                        Party=new Party
+                        {
+                            PartyExtension=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name="partyTransactionID",
+                                    Value="28fed77a-aa9e-4738-af47-e3db34fc7b58"
+                                },
+                                new Extension
+                                {
+                                    Name="sourceSystem",
+                                    Value= "EBP"
+                                }
+                            },
+                            PartyID= "WEB",
+                            LanguageAbility= "ENG",
+                        }
+                    }
+                },
+                OrderItems = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        ID="1",
+                        Product=new Product
+                        {
+                            SubCategory="BRANDED",
+                            ProductCategory="HANDSET",
+                            ProductSpecification=new Specification
+                            {
+                                Brand="CLEARWAY"
+                            },
+                            ProductSerialNumber=serial,
+                        },
+                        Action="DEACTIVATION",
+                        Location=new Location
+                        {
+                            PostalAddress=new PostalAddress
+                            {
+                                Zipcode="33178"
+                            }
+                        },
+                        OrderItemExtension=new List<Extension>
+                        {
+                            new Extension
+                            {
+                                Name= "reason",
+                                Value="PASTDUE"
+                            }
+                        }
+                    }
+                },
+                ExternalID = "123"
+            };
+
+            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
         }
     }
 }

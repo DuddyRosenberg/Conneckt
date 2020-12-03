@@ -77,3 +77,15 @@ body {
     margin-bottom: 1rem;
     padding-top: 1rem;
 }
+
+/* Results */
+#result {
+    font-size: 1rem;
+    padding: 1rem;
+    background: #d0dbe4;
+    margin-top: 0;
+}
+.results-label {
+    font-size: .8rem;
+    margin: 2rem 0 .5rem;
+}

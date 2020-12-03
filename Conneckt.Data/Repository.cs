@@ -27,7 +27,7 @@ namespace Conneckt.Data
                 {
                     bulkData.Add(new BulkData
                     {
-                        ID = (int)reader["ID"],
+                        ID = reader.Get<int>("ID"),
                         Action = (BulkAction)reader["Action"],
                         Zip = reader.Get<string>("Zip"),
                         Serial = reader.Get<string>("Serial"),
@@ -42,6 +42,21 @@ namespace Conneckt.Data
 
                 return bulkData;
             }
+        }
+
+        public void WriteResponse(int id, string response)
+        {
+            using (OleDbConnection connection = new OleDbConnection(_connectionString))
+            {
+                OleDbCommand cmd = new OleDbCommand();
+                cmd.CommandText = $"UPDATE bulkaction SET Response = @response, Done = true WHERE ID = @id";
+                cmd.Parameters.AddWithValue("@response", response);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Connection = connection;
+                connection.Open();
+                cmd.ExecuteNonQuery();
+            }
+
         }
     }
 

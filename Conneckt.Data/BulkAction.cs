@@ -11,5 +11,8 @@ namespace Conneckt.Data
         Activate,
         ExternalPort,
         InternalPort,
+        ChangeSIM,
+        DeactivateAndRetaineDays,
+        DeactivatePastDue
     }
 }

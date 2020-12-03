@@ -11,5 +11,6 @@ namespace Conneckt.Data
         public Location Location { get; set; }
         public string Action { get; set; }
         public List<Extension> OrderItemExtension { get; set; }
+        public int? Quantity { get; set; }
     }
 }
