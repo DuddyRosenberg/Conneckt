@@ -19,7 +19,7 @@ namespace Conneckt
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseUrls("http://localhost:7100")
+                .UseUrls("http://localhost:7101")
                 .UseKestrel()
                 .UseStartup<Startup>()
                 .Build();

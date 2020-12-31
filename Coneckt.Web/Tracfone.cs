@@ -20,6 +20,7 @@ namespace Coneckt.Web
     {
         private TracfoneAuthorizations _authorizations;
         private string _email;
+        private string _password;
         private string _clientID;
         private string _jwtClientID;
 
@@ -27,6 +28,7 @@ namespace Coneckt.Web
         {
             _authorizations = new TracfoneAuthorizations(configuration);
             _email = configuration["Credentials:username"];
+            _password = configuration["Credentials:username"];
             _clientID = configuration["Credentials:clientID"];
             _jwtClientID = configuration["Credentials:jwtClientID"];
         }
@@ -103,7 +105,9 @@ namespace Coneckt.Web
                 }
             };
 
-            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
 
         public async Task<dynamic> BYOPRegistration(AddDeviceActionModel model)
@@ -184,7 +188,9 @@ namespace Coneckt.Web
                 }
             };
 
-            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
 
         public async Task<dynamic> AddDevice(string serial)
@@ -264,7 +270,9 @@ namespace Coneckt.Web
                 }
             };
 
-            return await TracfoneAPI.PostAPIResponse(url, $"Bearer {auth.AccessToken}", data);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"Bearer {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
 
         public async Task<dynamic> DeleteDevice(string serial)
@@ -344,7 +352,387 @@ namespace Coneckt.Web
                 }
             };
 
-            return await TracfoneAPI.PostAPIResponse(url, $"Bearer {auth.AccessToken}", data);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"Bearer {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
+        }
+
+        public async Task<dynamic> EstimateOrder(string loginCookie)
+        {
+            var url = $"api/order-mgmt/v1/productorder/estimate?client_id={_clientID}";
+            var auth = await _authorizations.GetOrderMgmt();
+            var data = new ServiceData
+            {
+                RelatedParties = new List<RelatedParty>
+                {
+                    new RelatedParty
+                    {
+                        RoleType="buyerOrg",
+                        Party=new Party
+                        {
+                            PartyID="AMZ1FDFDKMDFSD",
+                            LanguageAbility="ENG",
+                            Organization=new Organization
+                            {
+                                OrganizationName= "TRAC1432"
+                            },
+                            PartyExtension=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name="accountEmail",
+                                    Value=""
+                                },
+                                new Extension
+                                {
+                                    Name="sourceSystem",
+                                    Value="EBP"
+                                },
+                                new Extension
+                                {
+                                    Name="UserIdentityToken",
+                                    Value=loginCookie
+                                },
+                                new Extension
+                                {
+                                    Name="Channel",
+                                    Value="B2B"
+                                }
+                            }
+                        }
+                    },
+                    new RelatedParty
+                    {
+                        RoleType="customer",
+                        Party=new Party
+                        {
+                            LanguageAbility="ENG"
+                        }
+                    }
+                },
+                ExternalID = "ASKNN123N2334123",
+                OrderDate = "2018-11-16T16:42:23-04:00",
+                OrderItems = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        Action="ESTIMATE",
+                        ID="1",
+                        ProductOffering=new ProductOffering
+                        {
+                            ID="12554",
+                            Category="Unlimited talk, text, data with the first 2GB at high-speed then 2G*",
+                            ProductSpecification=new Specification
+                            {
+                                Brand="CLEARWAY"
+                            },
+                            SupportingResources=new List<SupportingResource>
+                            {
+                                new SupportingResource
+                                {
+                                    SerialNumber="257694107902515847",
+                                    ResourceType="HANDSET"
+                                }
+                            },
+                            CharacteristicSpecification=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name="FULFILLMENT_TYPE",
+                                    Value="NOW"
+                                },
+                                new Extension
+                                {
+                                    Name="TYPE",
+                                    Value="UPSELL"
+                                },
+                                new Extension
+                                {
+                                    Name="AUTOREFIL",
+                                    Value="TRUE"
+                                }
+                            }
+                        },
+                        Quantity=1
+                    }
+                },
+                Location = new List<Location>
+                {
+                    new Location
+                    {
+                        AddressType="BILLING",
+                        Address=new PostalAddress
+                        {
+                            Zipcode="33178"
+                        }
+                    }
+                }
+            };
+
+            return TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data, loginCookie);
+        }
+
+        public async Task<dynamic> SubmitOrder(string loginCookie)
+        {
+            var url = $"api/order-mgmt/v2/productorder?client_id={_clientID}";
+            var auth = await _authorizations.GetOrderMgmt();
+            var data = new OrderData
+            {
+                Request = new Request
+                {
+                    ID = "34972507",
+                    ExternalID = "34972507",
+                    Location = new List<Location>
+                    {
+                        new Location
+                        {
+                            AddressType="BILLING",
+                            Address=new PostalAddress
+                            {
+                                Zipcode= "33178"
+                            }
+                        }
+                    },
+                    RelatedParties = new List<RelatedParty>
+                    {
+                        new RelatedParty
+                        {
+                            Party=new Party
+                            {
+                                PartyID="CUST_HASH"
+                            },
+                            RoleType="customer"
+                        },
+                        new RelatedParty
+                        {
+                            Party=new Party
+                            {
+                                Individual=new Individual
+                                {
+                                    PersonalizationId="58068774"
+                                },
+                                PartyExtension=new List<Extension>
+                                {
+                                    new Extension
+                                    {
+                                        Name="partySignature",
+                                        Value="V2bpRRpDskH16B55MjSBASHoI5Q="
+                                    }
+                                }
+                            },
+                            RoleType="buyerAdmin"
+                        },
+                        new RelatedParty
+                        {
+                            Party=new Party
+                            {
+                                PartyID="CLEARWAYWEB",
+                                LanguageAbility="ENG",
+                                PartyExtension=new List<Extension>
+                                {
+                                    new Extension
+                                    {
+                                        Name="partyTransactionID",
+                                        Value="web_1231234234424"
+                                    },
+                                    new Extension
+                                    {
+                                        Name="sourceSystem",
+                                        Value="EBP"
+                                    },
+                                    new Extension
+                                    {
+                                        Name="language",
+                                        Value= "ENG"
+                                    },
+                                    new Extension
+                                    {
+                                        Name="BrandName",
+                                        Value= "CLEARWAY"
+                                    },
+                                    new Extension
+                                    {
+                                        Name="Channel",
+                                        Value="B2B"
+                                    }
+                                }
+                            },
+                            RoleType="internal"
+                        }
+                    },
+                    OrderItems = new List<OrderItem>
+                    {
+                        new OrderItem2
+                        {
+                            ID="9030716",
+                            Quantity="1",
+                            Location=new Location
+                            {
+                                PostalAddress=new PostalAddress
+                                {
+                                    Zipcode="33178"
+                                }
+                            },
+                            Action="NEW",
+                            ProductOffering=new ProductOffering2
+                            {
+                                ID="12554",
+                                Category="Unlimited talk, text, data with the first 2GB at high-speed then 2G*",
+                                ProductSpecification=new List<Specification>
+                                { new Specification
+                                {
+                                    Brand="CLEARWAY"
+                                }
+                                },
+                                SupportingResources=new List<SupportingResource>
+                                {
+                                    new SupportingResource
+                                {
+                                    ResourceType="HANDSET",
+                                    SerialNumber="257694107902515847"
+                                }
+                                }
+                            },
+                            CharacteristicSpecification=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name="FULFILLMENT_TYPE",
+                                    Value="NOW"
+                                }
+                            },
+                           OrderItemPrice=new OrderPrice
+                           {
+                               Price=new Price
+                               {
+                                   Amount=20,
+                                   CurrencyCode="USD"
+                               }
+                           },
+                           Product=new Product
+                           {
+                               ProductSpecification=new Specification
+                               {
+                                   Brand="CLEARWAY"
+                               },
+                               RelatedServices=new List<RelatedService>
+                               {
+                                   new RelatedService
+                                   {
+                                       Category="SERVICE_PLAN",
+                                       IsRedeemNow=false
+                                   }
+                               }
+                           }
+                        }
+                    },
+                    OrderPrice = new OrderPrice
+                    {
+                        Price = new Price
+                        {
+                            Amount = 20.86,
+                            CurrencyCode = "USD"
+                        }
+                    },
+                    BillingAccount = new BillingAccount
+                    {
+                        PaymentPlan = new PaymentPlan
+                        {
+                            PaymentMean = new PaymentMean
+                            {
+                                ID = "183098114",
+                                AccountHolderName = "test",
+                                FirstName = "test",
+                                LastName = "test",
+                                IsDefault = true,
+                                IsExisting = "FALSE",
+                                Type = "CREDITCARD",
+                                CreditCard = new CreditCard
+                                {
+                                    Type = "VISA",
+                                    Year = "2026",
+                                    Month = "02",
+                                    Cvv = "123"
+                                },
+                                BillingAddress = new Address
+                                {
+                                    AddressLine1 = "1295 Charleston Road",
+                                    City = "Mountain View",
+                                    StateOrProvince = "CA",
+                                    Country = "USA",
+                                    ZipCode = "33178"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            return TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data, loginCookie);
+        }
+
+        public async Task<string> Login()
+        {
+            var url = "api/ecomm/customer-mgmt/v2/customer/login";
+            var auth = await _authorizations.GetEcomm();
+            var data = new AddDeviceData
+            {
+                RelatedParties = new List<RelatedParty>
+                {
+                    new RelatedParty
+                    {
+                        Party=new Party
+                        {
+                            PartyExtension=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name= "sourceSystem",
+                                    Value= "EBP"
+                                },
+                                new Extension
+                                {
+                                    Name="BrandName",
+                                    Value= "CLEARWAY"
+                                },
+                                new Extension
+                                {
+                                    Name="Channel",
+                                    Value="B2B"
+                                }
+                            },
+                            PartyID="Web"
+                        },
+                        RoleType="partner"
+                    }
+                },
+                CustomerAccounts = new List<CustomerAccount>
+                {
+                    new CustomerAccount
+                    {
+                       Brand="CLEARWAY",
+                       CustomerAccountExtension=new List<Extension>
+                       {
+                           new Extension
+                           {
+                               Name="password",
+                               Value=_password
+                           },
+                           new Extension
+                           {
+                               Name="username",
+                               Value=_email
+                           }
+                       }
+                    }
+                }
+            };
+
+            HttpResponseMessage response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var headers = response.Headers;
+            var setCookies = headers.GetValues("Set-Cookie");
+            var cookie = setCookies.FirstOrDefault(s => s.StartsWith("LtpaToken2"));
+            return cookie;
         }
 
         public async Task<dynamic> Activate(ActivateActionModel model)
@@ -442,7 +830,9 @@ namespace Coneckt.Web
                 }
             };
 
-            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
 
         public async Task<dynamic> ExternalPort(PortActionModel model)
@@ -646,7 +1036,9 @@ namespace Coneckt.Web
             }
             };
 
-            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
 
         public async Task<dynamic> InternalPort(PortActionModel model)
@@ -845,7 +1237,9 @@ namespace Coneckt.Web
             }
             };
 
-            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
 
         public async Task<dynamic> GetAccountDetails(int offset, int limit)
@@ -954,7 +1348,9 @@ namespace Coneckt.Web
                 }
             };
 
-            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
 
         public async Task<dynamic> DeactivateAndRetaineDays(string serial)
@@ -1025,7 +1421,9 @@ namespace Coneckt.Web
                 ExternalID = "123"
             };
 
-            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
 
         public async Task<dynamic> DeactivatePastDue(string serial)
@@ -1096,7 +1494,9 @@ namespace Coneckt.Web
                 ExternalID = "123"
             };
 
-            return await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
     }
 }

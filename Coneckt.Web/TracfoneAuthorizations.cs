@@ -61,6 +61,15 @@ namespace Coneckt.Web
 
             return await GetOrAddJWTAuth(path, url);
         }
+
+        public async Task<Authorization> GetEcomm()
+        {
+            var path = "Ecomm";
+            var url = "api/ecomm/oauth/token?grant_type=client_credentials&scope=/ecomm";
+
+            return await GetOrAddAuth(path, url);
+        }
+
         public async Task<Authorization> GetCustomerMgmtJWT()
         {
             var path = "CustomerMgmtJWT";
@@ -78,11 +87,13 @@ namespace Coneckt.Web
             if (auth.Expires < DateTime.Now)
             {
                 var response = await TracfoneAPI.PostAPIResponse(url, _accessToken);
+                var responseData = response.Content.ReadAsStringAsync().Result;
+                var responseObj = JObject.Parse(responseData);
                 auth = new Authorization
                 {
-                    TokenType = response.token_type,
-                    AccessToken = response.access_token,
-                    Expires = DateTime.Now.AddSeconds((double) response.expires_in)
+                    TokenType = responseObj.token_type,
+                    AccessToken = responseObj.access_token,
+                    Expires = DateTime.Now.AddSeconds((double)responseObj.expires_in)
                 };
                 authorizations[path] = auth;
                 var newJsonString = JsonConvert.SerializeObject(authorizations);
@@ -100,13 +111,16 @@ namespace Coneckt.Web
             if (auth.Expires < DateTime.Now)
             {
                 var response = await TracfoneAPI.PostAPIResponse(url, _jwtAccessToken, _username, _password);
-                double expires = response.expires_in;
+                var responseData = response.Content.ReadAsStringAsync().Result;
+                var responseObj = JObject.Parse(responseData);
+
+                double expires = responseObj.expires_in;
 
                 auth = new Authorization
                 {
-                    TokenType = response.token_type,
-                    AccessToken = response.access_token,
-                    Expires = DateTime.Now.AddSeconds((double) response.expires_in)
+                    TokenType = responseObj.token_type,
+                    AccessToken = responseObj.access_token,
+                    Expires = DateTime.Now.AddSeconds((double)response.expires_in)
                 };
                 authorizations[path] = auth;
                 var newJsonString = JsonConvert.SerializeObject(authorizations);

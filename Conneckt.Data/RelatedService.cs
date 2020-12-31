@@ -8,5 +8,6 @@ namespace Conneckt.Data
     {
         public string ID { get; set; }
         public string Category { get; set; }
+        public bool IsRedeemNow { get; set; }
     }
 }

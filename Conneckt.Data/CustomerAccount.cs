@@ -8,5 +8,7 @@ namespace Conneckt.Data
     {
         public string Action { get; set; }
         public List<CustomerProduct> CustomerProducts { get; set; }
+        public string Brand { get; set; }
+        public List<Extension> CustomerAccountExtension { get; set; }
     }
 }

@@ -10,5 +10,6 @@ namespace Conneckt.Data
         public string LanguageAbility { get; set; }
         public List<Extension> PartyExtension { get; set; }
         public Individual Individual { get; set; }
+        public Organization Organization { get; set; }
     }
 }

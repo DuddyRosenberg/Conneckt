@@ -54,8 +54,11 @@ namespace Conneckt.Data
 
                 foreach (BulkData data in bulkDatas)
                 {
-                    cmd.Parameters["@response"].Value = data.response;
-                    cmd.Parameters["@id"].Value = data.ID;
+                    cmd.Parameters.AddRange(new OleDbParameter[]
+                    {
+                        new OleDbParameter("@response", data.response),
+                        new OleDbParameter("@id", data.ID)
+                    });
                     cmd.ExecuteNonQuery();
                 }
             }

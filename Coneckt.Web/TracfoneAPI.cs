@@ -4,6 +4,7 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,9 +20,7 @@ namespace Coneckt.Web
             var client = new HttpClient();
             client.BaseAddress = new Uri("https://apigateway.tracfone.com");
             client.DefaultRequestHeaders.Add("Authorization", auth);
-            var response = await client.PostAsync(url, null);
-            var responseData = response.Content.ReadAsStringAsync().Result;
-            return JObject.Parse(responseData);
+            return await client.PostAsync(url, null);
         }
 
         //Overload post for request with data
@@ -37,9 +36,7 @@ namespace Coneckt.Web
             var jsonString = JsonConvert.SerializeObject(data, settings);
             var sendingData = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync(url, sendingData);
-            var responseData = response.Content.ReadAsStringAsync().Result;
-            return JObject.Parse(responseData);
+            return await client.PostAsync(url, sendingData);
         }
 
         //Overload for requstes with username and password
@@ -52,9 +49,19 @@ namespace Coneckt.Web
             client.DefaultRequestHeaders.Add("password", password);
             client.DefaultRequestHeaders.Add("Authorization", auth);
 
-            var response = await client.PostAsync(url, null);
-            var responseData = response.Content.ReadAsStringAsync().Result;
-            return JObject.Parse(responseData);
+            return await client.PostAsync(url, null);
+        }
+
+        //Overload for calls with coockie
+        public static async Task<dynamic> PostAPIResponse(string url, string auth,object data, string cookie)
+        {
+            var client = new HttpClient();
+            client.BaseAddress = new Uri("https://apigateway.tracfone.com");
+
+            client.DefaultRequestHeaders.Add("Authorization", auth);
+            client.DefaultRequestHeaders.Add("Set-Cookie", cookie);
+
+            return await client.PostAsync(url, null);
         }
 
         public static async Task<dynamic> GetAPIResponse(string url, string auth)

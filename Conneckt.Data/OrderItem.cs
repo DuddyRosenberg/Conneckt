@@ -12,5 +12,8 @@ namespace Conneckt.Data
         public string Action { get; set; }
         public List<Extension> OrderItemExtension { get; set; }
         public int? Quantity { get; set; }
+        public ProductOffering ProductOffering { get; set; }
+        public List<Extension> CharacteristicSpecification { get; set; }
+        public OrderPrice OrderItemPrice { get; set; }
     }
 }

@@ -161,6 +161,7 @@ namespace Coneckt.Web.Controllers
                             {
                                 byopEligibilityResult["request"] = "BYOP Eligibility Failed";
                                 addDeviceResults += JsonConvert.SerializeObject(byopEligibilityResult);
+                                data.response = addDeviceResults;
                                 results.Add(byopEligibilityResult);
                                 break;
                             }
@@ -171,6 +172,7 @@ namespace Coneckt.Web.Controllers
                                 //Add Device
                                 var addDeviceResult2 = await _tracfone.AddDevice(addDeviceModel.Serial);
                                 addDeviceResults += JsonConvert.SerializeObject(addDeviceResult2);
+                                data.response = addDeviceResults;
                                 results.Add(addDeviceResult2);
                                 break;
                             }
@@ -183,6 +185,7 @@ namespace Coneckt.Web.Controllers
                             {
                                 byopRegistrationResult["request"] = "BYOP Registration Failed";
                                 addDeviceResults += JsonConvert.SerializeObject(byopRegistrationResult);
+                                data.response = byopEligibilityResult;
                                 results.Add(byopRegistrationResult);
                                 break;
                             }
