@@ -82,18 +82,27 @@ namespace Coneckt.Web.Controllers
 
         public async Task<IActionResult> Activate(ActivateActionModel model)
         {
+            var loginCookie = await _tracfone.Login();
+            var estOrder = await _tracfone.EstimateOrder(loginCookie);
+            var submitOrder = await _tracfone.SubmitOrder(loginCookie);
             var result = await _tracfone.Activate(model);
             return Json(result);
         }
 
         public async Task<IActionResult> ExternalPort(PortActionModel model)
         {
+            var loginCookie = await _tracfone.Login();
+            var estOrder = await _tracfone.EstimateOrder(loginCookie);
+            var submitOrder = await _tracfone.SubmitOrder(loginCookie);
             var result = await _tracfone.ExternalPort(model);
             return Json(result);
         }
 
         public async Task<IActionResult> InternalPort(PortActionModel model)
         {
+            var loginCookie = await _tracfone.Login();
+            var estOrder = await _tracfone.EstimateOrder(loginCookie);
+            var submitOrder = await _tracfone.SubmitOrder(loginCookie);
             var result = await _tracfone.InternalPort(model);
             return Json(result);
         }
