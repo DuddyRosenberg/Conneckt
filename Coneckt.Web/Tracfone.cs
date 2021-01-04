@@ -1272,7 +1272,7 @@ namespace Coneckt.Web
             return await TracfoneAPI.GetAPIResponse(url, $"Bearer {auth.AccessToken}");
         }
 
-        public async Task<dynamic> ChangeSIM(ActivateActionModel model)
+        public async Task<dynamic> ChangeSIM(PortActionModel model)
         {
             var url = $"api/order-mgmt/v2/serviceorder?client_id={_clientID}";
             var auth = await _authorizations.GetOrderMgmt();
@@ -1334,7 +1334,7 @@ namespace Coneckt.Web
                             new Extension
                             {
                                 Name="currentMin",
-                                Value= "3629704046"
+                                Value= model.CurrentMIN
                             }
                         }
                     }

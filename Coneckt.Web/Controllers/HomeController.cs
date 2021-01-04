@@ -119,7 +119,7 @@ namespace Coneckt.Web.Controllers
             return Json(result);
         }
 
-        public async Task<IActionResult> ChangeSIM(ActivateActionModel model)
+        public async Task<IActionResult> ChangeSIM(PortActionModel model)
         {
             var result = await _tracfone.ChangeSIM(model);
             return Json(result["status"]["message"].ToString());
@@ -258,11 +258,12 @@ namespace Coneckt.Web.Controllers
                             results.Add(eportResp);
                             break;
                         case BulkAction.ChangeSIM:
-                            var changeSIMModel = new ActivateActionModel
+                            var changeSIMModel = new PortActionModel
                             {
                                 Serial = data.Serial,
                                 Sim = data.Sim,
-                                Zip = data.Zip
+                                Zip = data.Zip,
+                                CurrentMIN=data.CurrentMIN
                             };
 
                             var changeSIMResp = await _tracfone.ChangeSIM(changeSIMModel);
