@@ -100,6 +100,7 @@
 
         $.get('/home/getBalance', { phoneNumber }, (data) => {
             console.log(data);
+            console.log(JSON.stringify(data));
             if (data['status']['code'] == "0") {
                 html = '<table>';
                 html += '<tr><td>Balance Updated On </td><td>' + data['response']['configuration']['balanceUpdatedOn'] + '</td></tr>';

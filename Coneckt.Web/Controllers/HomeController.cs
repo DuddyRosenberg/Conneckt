@@ -82,9 +82,9 @@ namespace Coneckt.Web.Controllers
 
         public async Task<IActionResult> Activate(ActivateActionModel model)
         {
-            var loginCookie = await _tracfone.Login();
-            var estOrder = await _tracfone.EstimateOrder(loginCookie);
-            var submitOrder = await _tracfone.SubmitOrder(loginCookie);
+            // var loginCookie = await _tracfone.Login();
+            // var estOrder = await _tracfone.EstimateOrder(loginCookie);
+            // var submitOrder = await _tracfone.SubmitOrder(loginCookie);
             var result = await _tracfone.Activate(model);
             return Json(result);
         }
@@ -109,7 +109,7 @@ namespace Coneckt.Web.Controllers
 
         public async Task<IActionResult> GetAccountDetails(GetAccountDetailsActionModel model)
         {
-            dynamic result = (dynamic)await _tracfone.GetAccountDetails(0, 20);
+            dynamic result = (dynamic)await _tracfone.GetAccountDetails(1, 1000);
             return View(result);
         }
 

@@ -118,9 +118,9 @@ namespace Coneckt.Web
 
                 auth = new Authorization
                 {
-                    TokenType = responseObj.token_type,
+                    TokenType = "Bearer ",
                     AccessToken = responseObj.access_token,
-                    Expires = DateTime.Now.AddSeconds((double)response.expires_in)
+                    Expires = DateTime.Now.AddSeconds((double)responseObj.expires_in)
                 };
                 authorizations[path] = auth;
                 var newJsonString = JsonConvert.SerializeObject(authorizations);

@@ -1255,7 +1255,8 @@ namespace Coneckt.Web
                             $"&email={_email}";
             var auth = await _authorizations.GetCustomerMgmtJWT();
 
-            return await TracfoneAPI.GetAPIResponse(url, $"Bearer {auth.AccessToken}");
+            var response =  await TracfoneAPI.GetAPIResponse(url, $"Bearer {auth.AccessToken}");
+            return response;
         }
 
         public async Task<dynamic> GetBalance(string phoneNumber)
@@ -1334,7 +1335,7 @@ namespace Coneckt.Web
                             new Extension
                             {
                                 Name="currentMin",
-                                Value= "3629704046"
+                                Value= "8453251667"
                             }
                         }
                     }
