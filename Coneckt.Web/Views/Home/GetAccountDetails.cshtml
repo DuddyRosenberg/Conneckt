@@ -1,0 +1,17 @@
+﻿@model dynamic
+
+<div class="data">
+
+</div>
+<table id="my-table">
+</table>
+
+<script>
+    var data = @Html.Raw(Json.Serialize(@Model));
+</script>
+
+@section scripts{
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+    <script src="~/js/JavaScript.js"></script>
+}
