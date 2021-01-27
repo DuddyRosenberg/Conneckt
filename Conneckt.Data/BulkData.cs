@@ -17,5 +17,7 @@ namespace Conneckt.Data
         public string CurrentVKey { get; set; }
         public bool Done { get; set; }
         public string response { get; set; }
+        public string ResourceIdentifier { get; set; }
+        public string ResourceType { get; set; }
     }
 }

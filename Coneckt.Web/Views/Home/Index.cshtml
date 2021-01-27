@@ -12,11 +12,11 @@
             <input style="margin:2px" class="form-control" id="sim" placeholder="SIM" />
             <button style="margin:2px" id="add-device" type="button" class="btn btn-primary">Add Device</button>
             <div class="divider"></div>
-            <input style="margin:2px" class="form-control" id="zip" placeholder="Zip" />
-            <button style="margin:2px" id="activate" type="button" class="btn btn-primary">Activate</button>
+            <input style="margin:2px" class="form-control" id="zip" placeholder="Zip Code" />
+            <input style="margin:2px" class="form-control" id="min" placeholder="Current MDN" />
             <button style="margin:2px" id="change-sim" type="button" class="btn btn-primary">Change SIM</button>
             <div class="divider"></div>
-            <input style="margin:2px" class="form-control" id="current-min" placeholder="current MIN" />
+            <input style="margin:2px" class="form-control" id="current-min" placeholder="current MDN" />
             <input style="margin:2px" class="form-control" id="current-account-number" placeholder="current account number" />
             <input style="margin:2px" class="form-control" id="current-service-provider" placeholder="current service provider" />
             <button style="margin:2px" id="internal-port" type="button" class="btn btn-primary">Internal Port</button>
@@ -28,6 +28,37 @@
         <div class="row card-body">
             <a style="margin:5px; margin-left: 2px;" href="/home/GetAccountDetails" class="btn btn-primary">Get Account Details</a>
             <button style="margin:5px; margin-left: 2px;" id="execute-bulk" type="button" class="btn btn-success">Execute Bulk</button>
+        </div>
+    </div>
+    <div class="card mt-4">
+        <div class="row card-body">
+            <h5 class="card-title">Activate</h5>
+
+            <input style="margin:2px" class="form-control" id="activate-serial" placeholder="IMEI" />
+            <input style="margin:2px" class="form-control" id="activate-sim" placeholder="SIM" />
+            <input style="margin:2px" class="form-control" id="activate-zip" placeholder="Zip Code" />
+
+            <h6>Payment</h6>
+            <select id="activate-payment" style="margin:2px;" class="form-control">
+                <option selected="true" disabled="disabled">Select Payment Source</option>
+                @if (Model != null)
+                {
+                    @foreach (dynamic paymentSource in Model)
+                    {
+                        <option value="@paymentSource">@paymentSource</option>
+
+                    }
+                }
+            </select>
+            <input style="margin:2px" class="form-control" id="activate-cvv" placeholder="CVV" />
+
+            <h6>Billing Address</h6>
+            <input style="margin:2px" class="form-control" id="activate-billing-address" placeholder="Address" />
+            <input style="margin:2px" class="form-control" id="activate-billing-city" placeholder="City" />
+            <input style="margin:2px" class="form-control" id="activate-billing-state" placeholder="State" />
+            <input style="margin:2px" class="form-control" id="activate-billing-country" placeholder="Country" />
+            <input style="margin:2px" class="form-control" id="activate-billing-zip" placeholder="Zip Code" />
+            <button style="margin:2px" id="activate" type="button" class="btn btn-primary">Activate</button>
         </div>
     </div>
     <div class="card mt-4">

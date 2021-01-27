@@ -49,9 +49,18 @@
     $("#activate").on('click', () => {
         $('#result').text('');
         let sendingData = {
-            sim: $('#sim').val(),
-            serial: $('#serial').val(),
-            zip: $('#zip').val()
+            sim: $('#activate-sim').val(),
+            serial: $('#activate-serial').val(),
+            zip: $('#activate-zip').val(),
+            paymentMeanID: $('#activate-payment').val(),
+            cvv: $('#activate-cvv').val(),
+            billingAddress: {
+                addressLine1: $('#activate-billing-address').val(),
+                city: $('#activate-billing-city').val(),
+                stateOrProvince: $('#activate-billing-state').val(),,
+                country: $('#activate-billing-country').val(),,
+                zipCode: $('#activate-billing-zip').val()
+            }
         }
 
         $.post("/home/activate", sendingData, function (data) {
@@ -156,11 +165,13 @@
         let sendingData = {
             sim: $('#sim').val(),
             serial: $('#serial').val(),
-            zip: $('#zip').val()
+            zip: $('#zip').val(),
+            currentMIN: $('#min').val()
         }
 
         $.post("/home/changeSIM", sendingData, function (data) {
             $("#result").text(data);
+            console.log(data);
         });
     });
 

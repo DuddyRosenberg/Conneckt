@@ -8,5 +8,6 @@ namespace Coneckt.Web.Models
     public class DeleteActionModel
     {
         public string Serial { get; set; }
+        public bool UseLine { get; set; }
     }
 }

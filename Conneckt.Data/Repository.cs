@@ -36,7 +36,9 @@ namespace Conneckt.Data
                         CurrentServiceProvider = reader.Get<string>("CurrentServiceProvider"),
                         CurrentAccountNumber = reader.Get<string>("CurrentAccountNumber"),
                         CurrentVKey = reader.Get<string>("CurrentVKey"),
-                        Done = (bool)reader["Done"]
+                        Done = (bool)reader["Done"],
+                        ResourceIdentifier = reader.Get<string>("ResourceIdentifier"),
+                        ResourceType = reader.Get<string>("ResourceType")
                     });
                 }
 

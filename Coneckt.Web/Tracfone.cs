@@ -357,7 +357,7 @@ namespace Coneckt.Web
             return JObject.Parse(responseData);
         }
 
-        public async Task<dynamic> EstimateOrder(string loginCookie)
+        public async Task<dynamic> EstimateOrder(string loginCookie, ActivateActionModel model)
         {
             var url = $"api/order-mgmt/v1/productorder/estimate?client_id={_clientID}";
             var auth = await _authorizations.GetOrderMgmt();
@@ -430,7 +430,7 @@ namespace Coneckt.Web
                             {
                                 new SupportingResource
                                 {
-                                    SerialNumber="257694107902515847",
+                                    SerialNumber=model.Serial,
                                     ResourceType="HANDSET"
                                 }
                             },
@@ -463,7 +463,7 @@ namespace Coneckt.Web
                         AddressType="BILLING",
                         Address=new PostalAddress
                         {
-                            Zipcode="33178"
+                            Zipcode=model.Zip
                         }
                     }
                 }
@@ -472,7 +472,7 @@ namespace Coneckt.Web
             return TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data, loginCookie);
         }
 
-        public async Task<dynamic> SubmitOrder(string loginCookie)
+        public async Task<dynamic> SubmitOrder(string loginCookie, ActivateActionModel model, dynamic estimate, PaymentMean paymentMean)
         {
             var url = $"api/order-mgmt/v2/productorder?client_id={_clientID}";
             var auth = await _authorizations.GetOrderMgmt();
@@ -480,7 +480,7 @@ namespace Coneckt.Web
             {
                 Request = new Request
                 {
-                    ID = "34972507",
+                    ID = estimate.Id,
                     ExternalID = "34972507",
                     Location = new List<Location>
                     {
@@ -489,7 +489,7 @@ namespace Coneckt.Web
                             AddressType="BILLING",
                             Address=new PostalAddress
                             {
-                                Zipcode= "33178"
+                                Zipcode= model.Zip
                             }
                         }
                     },
@@ -509,14 +509,14 @@ namespace Coneckt.Web
                             {
                                 Individual=new Individual
                                 {
-                                    PersonalizationId="58068774"
+                                    PersonalizationId=estimate.relatedParties[0].party.partyExtension[1].value
                                 },
                                 PartyExtension=new List<Extension>
                                 {
                                     new Extension
                                     {
                                         Name="partySignature",
-                                        Value="V2bpRRpDskH16B55MjSBASHoI5Q="
+                                        Value=estimate.relatedParties[0].party.partyExtension[0].value
                                     }
                                 }
                             },
@@ -570,7 +570,7 @@ namespace Coneckt.Web
                             {
                                 PostalAddress=new PostalAddress
                                 {
-                                    Zipcode="33178"
+                                    Zipcode=model.Zip
                                 }
                             },
                             Action="NEW",
@@ -589,7 +589,7 @@ namespace Coneckt.Web
                                     new SupportingResource
                                 {
                                     ResourceType="HANDSET",
-                                    SerialNumber="257694107902515847"
+                                    SerialNumber=model.Serial
                                 }
                                 }
                             },
@@ -605,7 +605,7 @@ namespace Coneckt.Web
                            {
                                Price=new Price
                                {
-                                   Amount=20,
+                                   Amount=estimate.orderItems[0].orderItemPrice.price.amount,
                                    CurrencyCode="USD"
                                }
                            },
@@ -630,7 +630,7 @@ namespace Coneckt.Web
                     {
                         Price = new Price
                         {
-                            Amount = 20.86,
+                            Amount = estimate.orderPrice.tax.totalAmountWithDiscountAndTax,
                             CurrencyCode = "USD"
                         }
                     },
@@ -640,28 +640,21 @@ namespace Coneckt.Web
                         {
                             PaymentMean = new PaymentMean
                             {
-                                ID = "183098114",
+                                ID = model.PaymentMeanID,
                                 AccountHolderName = "test",
-                                FirstName = "test",
-                                LastName = "test",
+                                FirstName = paymentMean.FirstName,
+                                LastName = paymentMean.LastName,
                                 IsDefault = true,
                                 IsExisting = "FALSE",
                                 Type = "CREDITCARD",
                                 CreditCard = new CreditCard
                                 {
-                                    Type = "VISA",
-                                    Year = "2026",
-                                    Month = "02",
-                                    Cvv = "123"
+                                    Type = paymentMean.CreditCard.Type,
+                                    Year = paymentMean.CreditCard.Year,
+                                    Month = paymentMean.CreditCard.Month,
+                                    Cvv = model.CVV
                                 },
-                                BillingAddress = new Address
-                                {
-                                    AddressLine1 = "1295 Charleston Road",
-                                    City = "Mountain View",
-                                    StateOrProvince = "CA",
-                                    Country = "USA",
-                                    ZipCode = "33178"
-                                }
+                                BillingAddress = model.BillingAddress
                             }
                         }
                     }
@@ -1273,7 +1266,7 @@ namespace Coneckt.Web
             return await TracfoneAPI.GetAPIResponse(url, $"Bearer {auth.AccessToken}");
         }
 
-        public async Task<dynamic> ChangeSIM(ActivateActionModel model)
+        public async Task<dynamic> ChangeSIM(PortActionModel model)
         {
             var url = $"api/order-mgmt/v2/serviceorder?client_id={_clientID}";
             var auth = await _authorizations.GetOrderMgmt();
@@ -1335,7 +1328,7 @@ namespace Coneckt.Web
                             new Extension
                             {
                                 Name="currentMin",
-                                Value= "8453251667"
+                                Value= model.CurrentMIN
                             }
                         }
                     }
@@ -1499,7 +1492,7 @@ namespace Coneckt.Web
             var responseData = response.Content.ReadAsStringAsync().Result;
             return JObject.Parse(responseData);
         }
-        
+
         public async Task<dynamic> GetPaymetSources()
         {
             var url = $"api/customer-mgmt/v1/customer/paymentSource" +
@@ -1547,6 +1540,110 @@ namespace Coneckt.Web
 
             var result = await TracfoneAPI.GetAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}");
             return result;
+        }
+        public async Task<dynamic> Reactivate(string serialNumber)
+        {
+            var url = $"api/order-mgmt/v1/serviceorder?client_id={_clientID}";
+            var auth = await _authorizations.GetOrderMgmt();
+            var data = new ServiceData
+            {
+                OrderDate = "2016-04-16T16:42:23-04:00",
+                RelatedParties = new List<RelatedParty>
+                {
+                    new RelatedParty
+                    {
+                        RoleType="partner",
+                        Party=new Party
+                        {
+                            PartyExtension=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name="partyTransactionID",
+                                    Value="84306270-c4cd-4142-b41a-311b63b70074"
+                                },
+                                new Extension
+                                {
+                                    Name="sourceSystem",
+                                    Value="EBP"
+                                }
+                            },
+                            PartyID="vendor name",
+                            LanguageAbility="ENG"
+                        }
+                    },
+                    new RelatedParty
+                    {
+                        RoleType="customer",
+                        Party=new Party
+                        {
+                            Individual=new Individual
+                            {
+                                ID="681177314"
+                            },
+                            PartyExtension=new List<Extension>
+                            {
+                                new Extension
+                                {
+                                    Name="accountEmail",
+                                    Value=_email
+                                },
+                                new Extension
+                                {
+                                    Name="accountPassword",
+                                    Value=_password
+                                }
+                            }
+                        }
+                    }
+                },
+                ExternalID = "123",
+                OrderItems = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        Product=new Product
+                        {
+                            SubCategory="BRANDED",
+                            ProductCategory="HANDSET",
+                            ProductSpecification=new Specification
+                            {
+                                Brand="CLEARWAY"
+                            },
+                            RelatedServices=new List<RelatedService>
+                            {
+                                new RelatedService
+                                {
+                                    ID="",
+                                    Category="SERVICE_PLAN"
+                                }
+                            },
+                            ProductSerialNumber=serialNumber,
+                            SupportingResources=new List<SupportingResource>
+                            {
+                                new SupportingResource
+                                {
+                                    SerialNumber=serialNumber,
+                                    ResourceType="SIM_CARD"
+                                }
+                            }
+                        },
+                        ID="1",
+                        Location=new Location
+                        {
+                            PostalAddress=new PostalAddress
+                            {
+                                Zipcode="31088"
+                            }
+                        },
+                        Action="REACTIVATION"
+                    }
+                }
+            };
+
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
     }
 }

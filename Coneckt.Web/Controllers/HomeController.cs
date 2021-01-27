@@ -85,9 +85,10 @@ namespace Coneckt.Web.Controllers
 
         public async Task<IActionResult> Activate(ActivateActionModel model)
         {
-            // var loginCookie = await _tracfone.Login();
-            // var estOrder = await _tracfone.EstimateOrder(loginCookie);
-            // var submitOrder = await _tracfone.SubmitOrder(loginCookie);
+            var loginCookie = await _tracfone.Login();
+            var estOrder = await _tracfone.EstimateOrder(loginCookie, model);
+            var paymentMean = (PaymentMean)await _tracfone.GetPaymentSourceDetails(model.PaymentMeanID);
+            await _tracfone.SubmitOrder(loginCookie, model, estOrder, paymentMean);
             var result = await _tracfone.Activate(model);
             return Json(result);
         }
@@ -95,8 +96,9 @@ namespace Coneckt.Web.Controllers
         public async Task<IActionResult> ExternalPort(PortActionModel model)
         {
             var loginCookie = await _tracfone.Login();
-            var estOrder = await _tracfone.EstimateOrder(loginCookie);
-            var submitOrder = await _tracfone.SubmitOrder(loginCookie);
+            var estOrder = await _tracfone.EstimateOrder(loginCookie, model);
+            var paymentMean = (PaymentMean)await _tracfone.GetPaymentSourceDetails(model.PaymentMeanID);
+            await _tracfone.SubmitOrder(loginCookie, model, estOrder, paymentMean);
             var result = await _tracfone.ExternalPort(model);
             return Json(result);
         }
@@ -104,8 +106,9 @@ namespace Coneckt.Web.Controllers
         public async Task<IActionResult> InternalPort(PortActionModel model)
         {
             var loginCookie = await _tracfone.Login();
-            var estOrder = await _tracfone.EstimateOrder(loginCookie);
-            var submitOrder = await _tracfone.SubmitOrder(loginCookie);
+            var estOrder = await _tracfone.EstimateOrder(loginCookie, model);
+            var paymentMean = (PaymentMean)await _tracfone.GetPaymentSourceDetails(model.PaymentMeanID);
+            await _tracfone.SubmitOrder(loginCookie, model, estOrder, paymentMean);
             var result = await _tracfone.InternalPort(model);
             return Json(result);
         }
@@ -122,7 +125,7 @@ namespace Coneckt.Web.Controllers
             return Json(result);
         }
 
-        public async Task<IActionResult> ChangeSIM(ActivateActionModel model)
+        public async Task<IActionResult> ChangeSIM(PortActionModel model)
         {
             var result = await _tracfone.ChangeSIM(model);
             return Json(result["status"]["message"].ToString());
@@ -130,19 +133,37 @@ namespace Coneckt.Web.Controllers
 
         public async Task<IActionResult> DeactivateAndRetaineDays(DeleteActionModel model)
         {
+            if (model.UseLine)
+            {
+                var deviceDetails = await _tracfone.GetDeviceDetails(model.Serial, "Line");
+                var serial = deviceDetails.Resource.PhysicalResource.SerialNumber;
+                model.Serial = serial;
+            }
             var result = await _tracfone.DeactivateAndRetaineDays(model.Serial);
             return Json(result["status"]["message"].ToString());
         }
 
         public async Task<IActionResult> DeactivatePastDue(DeleteActionModel model)
         {
+            if (model.UseLine)
+            {
+                var deviceDetails = await _tracfone.GetDeviceDetails(model.Serial, "Line");
+                var serial = deviceDetails.Resource.PhysicalResource.SerialNumber;
+                model.Serial = serial;
+            }
             var result = await _tracfone.DeactivatePastDue(model.Serial);
             return Json(result["status"]["message"].ToString());
         }
 
         public async Task<IActionResult> Reactivate(DeleteActionModel model)
         {
-            var result = "test";
+            if (model.UseLine)
+            {
+                var deviceDetails = await _tracfone.GetDeviceDetails(model.Serial, "Line");
+                var serial = deviceDetails.Resource.PhysicalResource.SerialNumber;
+                model.Serial = serial;
+            }
+            var result = await _tracfone.Reactivate(model.Serial);
             return Json(result);
         }
 
@@ -267,7 +288,7 @@ namespace Coneckt.Web.Controllers
                             results.Add(eportResp);
                             break;
                         case BulkAction.ChangeSIM:
-                            var changeSIMModel = new ActivateActionModel
+                            var changeSIMModel = new PortActionModel
                             {
                                 Serial = data.Serial,
                                 Sim = data.Sim,
@@ -288,6 +309,16 @@ namespace Coneckt.Web.Controllers
                             data.response = JsonConvert.SerializeObject(deactivatePastDueResponse);
                             results.Add(deactivatePastDueResponse);
                             break;
+                        case BulkAction.Reactivate:
+                            var reactivateResponse = await _tracfone.Reactivate(data.Serial); ;
+                            data.response = JsonConvert.SerializeObject(reactivateResponse);
+                            results.Add(reactivateResponse);
+                            break;
+                        case BulkAction.GetDeviceDetails:
+                            var deviceDetailsResponse = await _tracfone.GetDeviceDetails(data.ResourceIdentifier, data.ResourceType);
+                            data.response = JsonConvert.SerializeObject(deviceDetailsResponse);
+                            results.Add(deviceDetailsResponse);
+                            break;
                     }
                 }
             }
@@ -297,14 +328,17 @@ namespace Coneckt.Web.Controllers
 
         public async Task<IActionResult> GetPaymentDetails(PaymentDetailsModel model)
         {
-            return Json( await _tracfone.GetPaymentSourceDetails(model.Id) );
+            return Json(await _tracfone.GetPaymentSourceDetails(model.Id));
         }
-        
+
         public async Task<IActionResult> GetDeviceDetails(GetDeviceModel model)
         {
-            var result = await _tracfone.GetDeviceDetails(model.Id, model.Type);
-            var a = 2;
-            return Json(await _tracfone.GetDeviceDetails(model.Id, model.Type) );
+            return Json(await _tracfone.GetDeviceDetails(model.Id, model.Type));
+        }
+
+        public async Task<IActionResult> GetPaymentSources()
+        {
+            return Json(await _tracfone.GetPaymetSources());
         }
     }
 }

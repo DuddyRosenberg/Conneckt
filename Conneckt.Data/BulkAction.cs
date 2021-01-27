@@ -13,6 +13,8 @@ namespace Conneckt.Data
         InternalPort,
         ChangeSIM,
         DeactivateAndRetaineDays,
-        DeactivatePastDue
+        DeactivatePastDue,
+        Reactivate,
+        GetDeviceDetails
     }
 }

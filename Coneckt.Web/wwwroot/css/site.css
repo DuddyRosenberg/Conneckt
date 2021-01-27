@@ -100,3 +100,7 @@ tr {
 td:first-child {
     min-width: 15rem;
 }
+
+h6 {
+    margin: 1rem 2px .5rem;
+}
