@@ -135,8 +135,8 @@ namespace Coneckt.Web.Controllers
         {
             if (model.UseLine)
             {
-                var deviceDetails = await _tracfone.GetDeviceDetails(model.Serial, "Line");
-                var serial = deviceDetails.Resource.PhysicalResource.SerialNumber;
+                var deviceDetails = await _tracfone.GetDeviceDetails(model.Serial, "LINE");
+                var serial = deviceDetails.resource.physicalResource.serialNumber;
                 model.Serial = serial;
             }
             var result = await _tracfone.DeactivateAndRetaineDays(model.Serial);
@@ -147,7 +147,7 @@ namespace Coneckt.Web.Controllers
         {
             if (model.UseLine)
             {
-                var deviceDetails = await _tracfone.GetDeviceDetails(model.Serial, "Line");
+                var deviceDetails = await _tracfone.GetDeviceDetails(model.Serial, "LINE");
                 var serial = deviceDetails.Resource.PhysicalResource.SerialNumber;
                 model.Serial = serial;
             }
@@ -159,8 +159,8 @@ namespace Coneckt.Web.Controllers
         {
             if (model.UseLine)
             {
-                var deviceDetails = await _tracfone.GetDeviceDetails(model.Serial, "Line");
-                var serial = deviceDetails.Resource.PhysicalResource.SerialNumber;
+                var deviceDetails = await _tracfone.GetDeviceDetails(model.Serial, "LINE");
+                var serial = deviceDetails.resource.physicalResource.serialNumber;
                 model.Serial = serial;
             }
             var result = await _tracfone.Reactivate(model.Serial);

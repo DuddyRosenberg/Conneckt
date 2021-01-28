@@ -57,8 +57,8 @@
             billingAddress: {
                 addressLine1: $('#activate-billing-address').val(),
                 city: $('#activate-billing-city').val(),
-                stateOrProvince: $('#activate-billing-state').val(),,
-                country: $('#activate-billing-country').val(),,
+                stateOrProvince: $('#activate-billing-state').val(),
+                country: $('#activate-billing-country').val(),
                 zipCode: $('#activate-billing-zip').val()
             }
         }
@@ -127,10 +127,12 @@
         $('#result').text('');
 
         let sendingData = {
-            serial: $('#am-device').val()
+            serial: $('#am-device').val(),
+            useLine: $('#am-line').is(':checked')
         }
 
         $.post("/home/DeactivateAndRetaineDays", sendingData, function (data) {
+            console.log(data);
             $("#result").text(data);
         });
     });
@@ -139,10 +141,12 @@
         $('#result').text('');
 
         let sendingData = {
-            serial: $('#am-device').val()
+            serial: $('#am-device').val(),
+            useLine: $('#am-line').is(':checked')
         }
 
         $.post("/home/DeactivatePastDue", sendingData, function (data) {
+            console.log(data);
             $("#result").text(data);
         });
     });
@@ -152,11 +156,13 @@
 
         let sendingData = {
             serial: $('#am-device').val(),
-            zip: $('#am-zip-code').val()
+            zip: $('#am-zip-code').val(),
+            useLine: $('#am-line').is(':checked')
         }
 
         $.post("/home/Reactivate", sendingData, function (data) {
-            $("#result").text(data);
+            console.log(data);
+            $("#result").text(data.status.message);
         });
     });
 

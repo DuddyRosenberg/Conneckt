@@ -1623,7 +1623,7 @@ namespace Coneckt.Web
                             {
                                 new SupportingResource
                                 {
-                                    SerialNumber=serialNumber,
+                                    SerialNumber="",
                                     ResourceType="SIM_CARD"
                                 }
                             }

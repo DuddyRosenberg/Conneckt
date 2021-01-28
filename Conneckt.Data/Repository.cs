@@ -51,16 +51,27 @@ namespace Conneckt.Data
             using (OleDbConnection connection = new OleDbConnection(_connectionString))
             {
                 OleDbCommand cmd = connection.CreateCommand();
-                cmd.CommandText = $"UPDATE bulkaction SET Response = @response, Done = true WHERE ID = @id";
                 connection.Open();
 
                 foreach (BulkData data in bulkDatas)
                 {
-                    cmd.Parameters.AddRange(new OleDbParameter[]
+                    if (data.response != null)
                     {
-                        new OleDbParameter("@response", data.response),
-                        new OleDbParameter("@id", data.ID)
-                    });
+                        cmd.CommandText = $"UPDATE bulkaction SET Response = @response, Done = true WHERE ID = @id";
+                        cmd.Parameters.AddRange(new OleDbParameter[]
+                        {
+                            new OleDbParameter("@response", data.response),
+                            new OleDbParameter("@id", data.ID)
+                        });
+                    } else
+                    {
+                        cmd.CommandText = $"UPDATE bulkaction SET Done = true WHERE ID = @id";
+                        cmd.Parameters.AddRange(new OleDbParameter[]
+                        {
+                            new OleDbParameter("@id", data.ID)
+                        });
+
+                    }
                     cmd.ExecuteNonQuery();
                 }
             }
