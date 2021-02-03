@@ -104,3 +104,14 @@ td:first-child {
 h6 {
     margin: 1rem 2px .5rem;
 }
+
+.form-inputs {
+    width: 100%;
+    margin: 0;
+    background: #f7f7f7;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+.form-inputs > .hidden {
+    display: none;
+}

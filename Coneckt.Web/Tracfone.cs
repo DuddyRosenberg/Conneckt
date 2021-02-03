@@ -361,6 +361,18 @@ namespace Coneckt.Web
         {
             var url = $"api/order-mgmt/v1/productorder/estimate?client_id={_clientID}";
             var auth = await _authorizations.GetOrderMgmt();
+
+            int index = loginCookie.IndexOf("LtpaToken2");
+            string ltpaValue= (index < 0)
+                ? loginCookie
+                : loginCookie.Remove(index, "LtpaToken2=".Length);
+
+            int pathIndex = ltpaValue.IndexOf("; Path=/");
+            string cleanLoginCookie = (pathIndex < 0)
+                ? ltpaValue
+                : ltpaValue.Remove(pathIndex, "; Path=/".Length);
+
+
             var data = new ServiceData
             {
                 RelatedParties = new List<RelatedParty>
@@ -381,7 +393,7 @@ namespace Coneckt.Web
                                 new Extension
                                 {
                                     Name="accountEmail",
-                                    Value=""
+                                    Value=_email
                                 },
                                 new Extension
                                 {
@@ -391,7 +403,7 @@ namespace Coneckt.Web
                                 new Extension
                                 {
                                     Name="UserIdentityToken",
-                                    Value=loginCookie
+                                    Value=cleanLoginCookie
                                 },
                                 new Extension
                                 {
@@ -420,8 +432,8 @@ namespace Coneckt.Web
                         ID="1",
                         ProductOffering=new ProductOffering
                         {
-                            ID="12554",
-                            Category="Unlimited talk, text, data with the first 2GB at high-speed then 2G*",
+                            ID=model.ProductId,
+                            Category=model.ProductName,
                             ProductSpecification=new Specification
                             {
                                 Brand="CLEARWAY"
@@ -463,13 +475,15 @@ namespace Coneckt.Web
                         AddressType="BILLING",
                         Address=new PostalAddress
                         {
-                            Zipcode=model.Zip
+                            Zipcode=model.BillingAddress.ZipCode
                         }
                     }
                 }
             };
 
-            return TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data, loginCookie);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
 
         public async Task<dynamic> SubmitOrder(string loginCookie, ActivateActionModel model, dynamic estimate, PaymentMean paymentMean)
@@ -480,8 +494,8 @@ namespace Coneckt.Web
             {
                 Request = new Request
                 {
-                    ID = estimate.Id,
-                    ExternalID = "34972507",
+                    ID = estimate.id,
+                    ExternalID = estimate.id,
                     Location = new List<Location>
                     {
                         new Location
@@ -489,17 +503,18 @@ namespace Coneckt.Web
                             AddressType="BILLING",
                             Address=new PostalAddress
                             {
-                                Zipcode= model.Zip
+                                Zipcode= paymentMean.BillingAddress.ZipCode
                             }
                         }
                     },
+                    OrderDate = "2018-11-16T16:42:23-04:00",
                     RelatedParties = new List<RelatedParty>
                     {
                         new RelatedParty
                         {
                             Party=new Party
                             {
-                                PartyID="CUST_HASH"
+                                PartyID="Approved Link"
                             },
                             RoleType="customer"
                         },
@@ -509,14 +524,14 @@ namespace Coneckt.Web
                             {
                                 Individual=new Individual
                                 {
-                                    PersonalizationId=estimate.relatedParties[0].party.partyExtension[1].value
+                                    PersonalizationId=estimate.relatedParties[0].party.partyExtension[0].value
                                 },
                                 PartyExtension=new List<Extension>
                                 {
                                     new Extension
                                     {
                                         Name="partySignature",
-                                        Value=estimate.relatedParties[0].party.partyExtension[0].value
+                                        Value=estimate.relatedParties[0].party.partyExtension[1].value
                                     }
                                 }
                             },
@@ -564,7 +579,7 @@ namespace Coneckt.Web
                     {
                         new OrderItem2
                         {
-                            ID="9030716",
+                            ID=estimate.orderItems[0].id,
                             Quantity="1",
                             Location=new Location
                             {
@@ -576,8 +591,8 @@ namespace Coneckt.Web
                             Action="NEW",
                             ProductOffering=new ProductOffering2
                             {
-                                ID="12554",
-                                Category="Unlimited talk, text, data with the first 2GB at high-speed then 2G*",
+                                ID=model.ProductId,
+                                Category=model.ProductName,
                                 ProductSpecification=new List<Specification>
                                 { new Specification
                                 {
@@ -638,30 +653,15 @@ namespace Coneckt.Web
                     {
                         PaymentPlan = new PaymentPlan
                         {
-                            PaymentMean = new PaymentMean
-                            {
-                                ID = model.PaymentMeanID,
-                                AccountHolderName = "test",
-                                FirstName = paymentMean.FirstName,
-                                LastName = paymentMean.LastName,
-                                IsDefault = true,
-                                IsExisting = "FALSE",
-                                Type = "CREDITCARD",
-                                CreditCard = new CreditCard
-                                {
-                                    Type = paymentMean.CreditCard.Type,
-                                    Year = paymentMean.CreditCard.Year,
-                                    Month = paymentMean.CreditCard.Month,
-                                    Cvv = model.CVV
-                                },
-                                BillingAddress = model.BillingAddress
-                            }
+                            PaymentMean = paymentMean
                         }
                     }
                 }
             };
 
-            return TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data, loginCookie);
+            var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
+            var responseData = response.Content.ReadAsStringAsync().Result;
+            return JObject.Parse(responseData);
         }
 
         public async Task<string> Login()
@@ -709,7 +709,7 @@ namespace Coneckt.Web
                            new Extension
                            {
                                Name="password",
-                               Value=_password
+                               Value="Gur36071!"
                            },
                            new Extension
                            {

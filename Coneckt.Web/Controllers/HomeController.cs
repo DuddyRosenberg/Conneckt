@@ -87,8 +87,26 @@ namespace Coneckt.Web.Controllers
         {
             var loginCookie = await _tracfone.Login();
             var estOrder = await _tracfone.EstimateOrder(loginCookie, model);
-            var paymentMean = (PaymentMean)await _tracfone.GetPaymentSourceDetails(model.PaymentMeanID);
-            await _tracfone.SubmitOrder(loginCookie, model, estOrder, paymentMean);
+            var paymentMean = await _tracfone.GetPaymentSourceDetails(model.PaymentMeanID);
+            var response = new PaymentMean
+            {
+                ID = model.PaymentMeanID,
+                AccountHolderName = paymentMean.response.paymentSourceDetail[0].customerDetails.firstName + " " + paymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
+                FirstName = paymentMean.response.paymentSourceDetail[0].customerDetails.firstName,
+                LastName = paymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
+                IsDefault = true,
+                IsExisting = "FALSE",
+                Type = "CREDITCARD",
+                CreditCard = new CreditCard
+                {
+                    Type = paymentMean.response.paymentSourceDetail[0].cardDetails.cardType,
+                    Year = paymentMean.response.paymentSourceDetail[0].cardDetails.expirationYear,
+                    Month = paymentMean.response.paymentSourceDetail[0].cardDetails.expirationMonth,
+                    Cvv = model.CVV,
+                },
+                BillingAddress = model.BillingAddress
+            };
+            var submitOrder = await _tracfone.SubmitOrder(loginCookie, model, estOrder, response);
             var result = await _tracfone.Activate(model);
             return Json(result);
         }

@@ -8,6 +8,7 @@ namespace Conneckt.Data
     {
         public string ID { get; set; }
         public string ExternalID { get; set; }
+        public string OrderDate { get; set; }
         public List<Location> Location { get; set; }
         public List<RelatedParty> RelatedParties { get; set; }
         public List<OrderItem> OrderItems { get; set; }
