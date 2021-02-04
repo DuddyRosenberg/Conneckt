@@ -19,5 +19,6 @@ namespace Conneckt.Data
         public string response { get; set; }
         public string ResourceIdentifier { get; set; }
         public string ResourceType { get; set; }
+        public dynamic ResponseObj { get; set; }
     }
 }

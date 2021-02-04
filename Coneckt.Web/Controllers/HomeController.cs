@@ -21,12 +21,14 @@ namespace Coneckt.Web.Controllers
         private IConfiguration _configuration;
         private Tracfone _tracfone;
         private string _connectionString;
+        private Log _log;
 
         public HomeController(IConfiguration configuration)
         {
             _configuration = configuration;
             _tracfone = new Tracfone(configuration);
             _connectionString = configuration.GetConnectionString("ConnectionString");
+            _log = new Log();
         }
 
         public async Task<IActionResult> Index()
@@ -38,10 +40,18 @@ namespace Coneckt.Web.Controllers
 
         public async Task<IActionResult> AddDevice(AddDeviceActionModel model)
         {
+            //Add Device
+            var addDeviceResult = await AddDeviceInner(model);
+            return addDeviceResult;
+
+        }
+
+        public async Task<IActionResult> AddDeviceInner(AddDeviceActionModel model)
+        {
             //BYOP Eligibility
             dynamic byopEligibilityResult = null;
-            string byopEligibilityStatus = "10062";
-            while (byopEligibilityStatus == "10062")
+            string byopEligibilityStatus = "";
+            while (byopEligibilityStatus != "0" && byopEligibilityStatus != "11023")
             {
                 byopEligibilityResult = await _tracfone.CheckBYOPEligibility(model.Serial);
                 byopEligibilityStatus = byopEligibilityResult["status"]["code"].ToString();
@@ -74,7 +84,6 @@ namespace Coneckt.Web.Controllers
             //Add Device
             var addDeviceResult = await _tracfone.AddDevice(model.Serial);
             return Json(addDeviceResult);
-
         }
 
         public async Task<IActionResult> DeleteDevice(DeleteActionModel model)
@@ -108,6 +117,33 @@ namespace Coneckt.Web.Controllers
             };
             var submitOrder = await _tracfone.SubmitOrder(loginCookie, model, estOrder, response);
             var result = await _tracfone.Activate(model);
+            return Json(result);
+        }
+
+        public async Task<IActionResult> BuyAirtime(ActivateActionModel model)
+        {
+            var loginCookie = await _tracfone.Login();
+            var estOrder = await _tracfone.EstimateOrder(loginCookie, model);
+            var paymentMean = await _tracfone.GetPaymentSourceDetails(model.PaymentMeanID);
+            var response = new PaymentMean
+            {
+                ID = model.PaymentMeanID,
+                AccountHolderName = paymentMean.response.paymentSourceDetail[0].customerDetails.firstName + " " + paymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
+                FirstName = paymentMean.response.paymentSourceDetail[0].customerDetails.firstName,
+                LastName = paymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
+                IsDefault = true,
+                IsExisting = "FALSE",
+                Type = "CREDITCARD",
+                CreditCard = new CreditCard
+                {
+                    Type = paymentMean.response.paymentSourceDetail[0].cardDetails.cardType,
+                    Year = paymentMean.response.paymentSourceDetail[0].cardDetails.expirationYear,
+                    Month = paymentMean.response.paymentSourceDetail[0].cardDetails.expirationMonth,
+                    Cvv = model.CVV,
+                },
+                BillingAddress = model.BillingAddress
+            };
+            var result = await _tracfone.SubmitOrder(loginCookie, model, estOrder, response);
             return Json(result);
         }
 
@@ -199,6 +235,7 @@ namespace Coneckt.Web.Controllers
                     switch (data.Action)
                     {
                         case BulkAction.AddDevice:
+                            _log.LogThis("Bulk Action", "Add Device");
                             var addDeviceModel = new AddDeviceActionModel
                             {
                                 Serial = data.Serial,
@@ -256,6 +293,7 @@ namespace Coneckt.Web.Controllers
 
                             break;
                         case BulkAction.DeleteDevice:
+                            _log.LogThis("Bulk Action", "Delete Device");
                             var deleteSerial = data.Serial;
 
                             var deleteResp = await _tracfone.DeleteDevice(deleteSerial);
@@ -263,18 +301,43 @@ namespace Coneckt.Web.Controllers
                             results.Add(deleteResp);
                             break;
                         case BulkAction.Activate:
+                            _log.LogThis("Bulk Action", "Activate");
                             var activateModel = new ActivateActionModel
                             {
                                 Serial = data.Serial,
                                 Sim = data.Sim,
-                                Zip = data.Zip
+                                Zip = data.Zip,
                             };
+
+                            var loginCookie = await _tracfone.Login();
+                            var estOrder = await _tracfone.EstimateOrder(loginCookie, activateModel);
+                            var paymentMean = await _tracfone.GetPaymentSourceDetails(activateModel.PaymentMeanID);
+                            var response = new PaymentMean
+                            {
+                                ID = activateModel.PaymentMeanID,
+                                AccountHolderName = paymentMean.response.paymentSourceDetail[0].customerDetails.firstName + " " + paymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
+                                FirstName = paymentMean.response.paymentSourceDetail[0].customerDetails.firstName,
+                                LastName = paymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
+                                IsDefault = true,
+                                IsExisting = "FALSE",
+                                Type = "CREDITCARD",
+                                CreditCard = new CreditCard
+                                {
+                                    Type = paymentMean.response.paymentSourceDetail[0].cardDetails.cardType,
+                                    Year = paymentMean.response.paymentSourceDetail[0].cardDetails.expirationYear,
+                                    Month = paymentMean.response.paymentSourceDetail[0].cardDetails.expirationMonth,
+                                    Cvv = activateModel.CVV,
+                                },
+                                BillingAddress = activateModel.BillingAddress
+                            };
+                            var submitOrder = await _tracfone.SubmitOrder(loginCookie, activateModel, estOrder, response);
 
                             var activateResp = await _tracfone.Activate(activateModel);
                             data.response = JsonConvert.SerializeObject(activateResp);
                             results.Add(activateResp);
                             break;
                         case BulkAction.InternalPort:
+                            _log.LogThis("Bulk Action", "Internal Port");
                             var internelPortModel = new PortActionModel
                             {
                                 Serial = data.Serial,
@@ -291,6 +354,7 @@ namespace Coneckt.Web.Controllers
                             results.Add(iportResp);
                             break;
                         case BulkAction.ExternalPort:
+                            _log.LogThis("Bulk Action", "External Port");
                             var externelPortModel = new PortActionModel
                             {
                                 Serial = data.Serial,
@@ -306,6 +370,7 @@ namespace Coneckt.Web.Controllers
                             results.Add(eportResp);
                             break;
                         case BulkAction.ChangeSIM:
+                            _log.LogThis("Bulk Action", "Change SIM");
                             var changeSIMModel = new PortActionModel
                             {
                                 Serial = data.Serial,
@@ -318,22 +383,27 @@ namespace Coneckt.Web.Controllers
                             results.Add(changeSIMResp);
                             break;
                         case BulkAction.DeactivateAndRetaineDays:
+                            _log.LogThis("Bulk Action", "Deactivate Retain Days");
                             var deactivateAndRetaineDaysReponse = await _tracfone.DeactivateAndRetaineDays(data.Serial);
                             data.response = JsonConvert.SerializeObject(deactivateAndRetaineDaysReponse);
                             results.Add(deactivateAndRetaineDaysReponse);
                             break;
                         case BulkAction.DeactivatePastDue:
+                            _log.LogThis("Bulk Action", "Deactivate Past Due");
                             var deactivatePastDueResponse = await _tracfone.DeactivatePastDue(data.Serial);
                             data.response = JsonConvert.SerializeObject(deactivatePastDueResponse);
                             results.Add(deactivatePastDueResponse);
                             break;
                         case BulkAction.Reactivate:
+                            _log.LogThis("Bulk Action", "Reactivate");
                             var reactivateResponse = await _tracfone.Reactivate(data.Serial); ;
                             data.response = JsonConvert.SerializeObject(reactivateResponse);
                             results.Add(reactivateResponse);
                             break;
                         case BulkAction.GetDeviceDetails:
+                            _log.LogThis("Bulk Action", "Get Device Details");
                             var deviceDetailsResponse = await _tracfone.GetDeviceDetails(data.ResourceIdentifier, data.ResourceType);
+                            data.ResponseObj = deviceDetailsResponse;
                             data.response = JsonConvert.SerializeObject(deviceDetailsResponse);
                             results.Add(deviceDetailsResponse);
                             break;

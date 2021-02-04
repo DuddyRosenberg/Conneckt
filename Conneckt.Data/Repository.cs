@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Data.OleDb;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace Conneckt.Data
 {
@@ -55,6 +57,14 @@ namespace Conneckt.Data
 
                 foreach (BulkData data in bulkDatas)
                 {
+                    if (data.Action == BulkAction.GetDeviceDetails)
+                    {
+                        if (data.ResponseObj != null)
+                        {
+                            SaveDeviceDetails(data.ResponseObj.resource);
+
+                        }
+                    }
                     if (data.response != null)
                     {
                         cmd.CommandText = $"UPDATE bulkaction SET Response = @response, Done = true WHERE ID = @id";
@@ -63,7 +73,8 @@ namespace Conneckt.Data
                             new OleDbParameter("@response", data.response),
                             new OleDbParameter("@id", data.ID)
                         });
-                    } else
+                    }
+                    else
                     {
                         cmd.CommandText = $"UPDATE bulkaction SET Done = true WHERE ID = @id";
                         cmd.Parameters.AddRange(new OleDbParameter[]
@@ -74,6 +85,48 @@ namespace Conneckt.Data
                     }
                     cmd.ExecuteNonQuery();
                 }
+            }
+        }
+
+        public void SaveDeviceDetails(dynamic data)
+        {
+            using (OleDbConnection connection = new OleDbConnection(_connectionString))
+            {
+                var resource = data.resource;
+                var physicalResource = data.physicalResource;
+
+                // var supportingResources2 = physicalResource.supportingResources;
+
+                
+                List<SupportingResource> supportingResources = physicalResource.supportingResources.ToObject<List<SupportingResource>>();
+                var simCardResource = supportingResources.FirstOrDefault(sr => sr.ResourceCategory == "SIM_CARD");
+                var lineResource = supportingResources.FirstOrDefault(sr => sr.ResourceCategory == "LINE");
+
+                List<RelatedService> relatedServices = physicalResource.relatedServices.ToObject<List<RelatedService>>();
+                var servicePlan = relatedServices.FirstOrDefault(rs => rs.Category == "SERVICE_PLAN");
+
+                OleDbCommand cmd = connection.CreateCommand();
+
+                
+                cmd.CommandText = "INSERT INTO DEVICEDETAILS(ResourceCategory, SerialNumber, SIMCard, SIMStatus, Line, LineStatus, Carrier, PlanName, Subcategory, ValidThru, JSONResponse)";
+                cmd.CommandText += "VALUES(@ResourceCategory, @SerialNumber, @SIMCard, @SIMStatus, @Line, @LineStatus, @Carrier, @PlanName, @Subcategory, @ValidThru, @JSONResponse)";
+                cmd.Parameters.AddRange(new OleDbParameter[]
+                       {
+                           new OleDbParameter("@ResourceCategory",physicalResource.resourceCategory),
+                           new OleDbParameter("@SerialNumber",physicalResource.serialNumber),
+                           new OleDbParameter("@SIMCard",simCardResource.SerialNumber),
+                           new OleDbParameter("@SIMStatus",simCardResource.Status),
+                           new OleDbParameter("@Line",lineResource.SerialNumber),
+                           new OleDbParameter("@LineStatus",lineResource.Status),
+                           new OleDbParameter("@Carrier", lineResource.Carrier.Name),
+                           new OleDbParameter("@PlanName",servicePlan.Name),
+                           new OleDbParameter("@Subcategory",servicePlan.Subcategory),
+                           new OleDbParameter("@ValidThru",servicePlan.ValidFor.EndDate),
+                           new OleDbParameter("@JSONResponse", JsonConvert.SerializeObject(data))
+                       });
+
+                connection.Open();
+                cmd.ExecuteNonQuery();
             }
         }
     }
@@ -92,3 +145,4 @@ namespace Conneckt.Data
         }
     }
 }
+ 

@@ -11,5 +11,7 @@ namespace Conneckt.Data
         public string ProductIdentifier { get; set; }
         public string SerialNumber { get; set; }
         public string ResourceType { get; set; }
+        public string Status { get; set; }
+        public Carrier Carrier { get; set; }
     }
 }

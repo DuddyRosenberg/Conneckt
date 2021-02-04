@@ -12,7 +12,7 @@ namespace Coneckt.Web.Models
         public string Serial { get; set; }
         public string Sim { get; set; }
         public string PaymentMeanID { get; set; }
-        public string ProductId { get; set; }
+        public string ProductID { get; set; }
         public string ProductName { get; set; }
         public string CVV { get; set; }
         public Address BillingAddress { get; set; }

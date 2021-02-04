@@ -23,6 +23,7 @@ namespace Coneckt.Web
         private string _password;
         private string _clientID;
         private string _jwtClientID;
+        private Log _log;
 
         public Tracfone(IConfiguration configuration)
         {
@@ -31,6 +32,7 @@ namespace Coneckt.Web
             _password = configuration["Credentials:username"];
             _clientID = configuration["Credentials:clientID"];
             _jwtClientID = configuration["Credentials:jwtClientID"];
+            _log = new Log();
         }
 
         public async Task<dynamic> CheckBYOPEligibility(string serial)
@@ -107,6 +109,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("Check BYOP Eligibility", "Request Data:" + JsonConvert.SerializeObject(data));
+            _log.LogThis("Check BYOP Eligibility", "Result:" + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -190,6 +194,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("BYOP Registration", "Request Data:" + JsonConvert.SerializeObject(data));
+            _log.LogThis("BYOP Registration", "Result:" + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -272,6 +278,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"Bearer {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("Add Device", "Request Data:" + JsonConvert.SerializeObject(data));
+            _log.LogThis("Add Device", "Result:" + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -354,6 +362,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"Bearer {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("Delete Device", "Request Data:" + JsonConvert.SerializeObject(data));
+            _log.LogThis("Delete Device", "Result:" + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -432,7 +442,7 @@ namespace Coneckt.Web
                         ID="1",
                         ProductOffering=new ProductOffering
                         {
-                            ID=model.ProductId,
+                            ID=model.ProductID,
                             Category=model.ProductName,
                             ProductSpecification=new Specification
                             {
@@ -483,6 +493,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("Estimate Order", "Request Data:" + JsonConvert.SerializeObject(data));
+            _log.LogThis("Estimate Order", "Result:" + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -591,7 +603,7 @@ namespace Coneckt.Web
                             Action="NEW",
                             ProductOffering=new ProductOffering2
                             {
-                                ID=model.ProductId,
+                                ID=model.ProductID,
                                 Category=model.ProductName,
                                 ProductSpecification=new List<Specification>
                                 { new Specification
@@ -661,6 +673,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("Submit Order", "Request Data:" + JsonConvert.SerializeObject(data));
+            _log.LogThis("Submit Order", "Result:" + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -725,6 +739,8 @@ namespace Coneckt.Web
             var headers = response.Headers;
             var setCookies = headers.GetValues("Set-Cookie");
             var cookie = setCookies.FirstOrDefault(s => s.StartsWith("LtpaToken2"));
+            _log.LogThis("Login", "Request Data:" + JsonConvert.SerializeObject(data));
+            _log.LogThis("Login", "Result: (LtpaToken2)" + JsonConvert.SerializeObject(cookie));
             return cookie;
         }
 
@@ -825,6 +841,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("Activate", "Request Data: " + JsonConvert.SerializeObject(data));
+            _log.LogThis("Activate", "Result: " + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -1031,6 +1049,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("External Port", "Request Data: " + JsonConvert.SerializeObject(data));
+            _log.LogThis("External Port", "Result: " + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -1232,6 +1252,10 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+
+            _log.LogThis("Internal Port", "Request Data: " + JsonConvert.SerializeObject(data));
+            _log.LogThis("Internal Port", "Result: " + JsonConvert.SerializeObject(responseData));
+
             return JObject.Parse(responseData);
         }
 
@@ -1249,6 +1273,7 @@ namespace Coneckt.Web
             var auth = await _authorizations.GetCustomerMgmtJWT();
 
             var response = await TracfoneAPI.GetAPIResponse(url, $"Bearer {auth.AccessToken}");
+            _log.LogThis("Get Account Details", "Result: " + JsonConvert.SerializeObject(response));
             return response;
         }
 
@@ -1263,7 +1288,10 @@ namespace Coneckt.Web
                             "&language=ENG ";
             var auth = await _authorizations.GetServiceMgmtJWT();
 
-            return await TracfoneAPI.GetAPIResponse(url, $"Bearer {auth.AccessToken}");
+            var result = await TracfoneAPI.GetAPIResponse(url, $"Bearer {auth.AccessToken}");
+            _log.LogThis("Get Balance", "Result: " + JsonConvert.SerializeObject(result));
+
+            return result;
         }
 
         public async Task<dynamic> ChangeSIM(PortActionModel model)
@@ -1344,6 +1372,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("Change SIM", "Request Data: " + JsonConvert.SerializeObject(data));
+            _log.LogThis("Change SIM", "Result: " + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -1417,6 +1447,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("Deactivate Customer Reqd", "Request Data: " + JsonConvert.SerializeObject(data));
+            _log.LogThis("Deactivate Customer Reqd", "Result: " + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -1490,6 +1522,8 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+            _log.LogThis("Deactivate Past Due", "Request Data: " + JsonConvert.SerializeObject(data));
+            _log.LogThis("Deactivate Past Due", "Result: " + JsonConvert.SerializeObject(responseData));
             return JObject.Parse(responseData);
         }
 
@@ -1505,6 +1539,7 @@ namespace Coneckt.Web
             var auth = await _authorizations.GetCustomerMgmtJWT();
 
             var response = await TracfoneAPI.GetPaymentAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}");
+            _log.LogThis("Get Payment Sources", "Result: " + JsonConvert.SerializeObject(response));
             return response;
         }
 
@@ -1519,7 +1554,9 @@ namespace Coneckt.Web
                 $"client_id={_jwtClientID}";
             var auth = await _authorizations.GetCustomerMgmtJWT();
 
-            return await TracfoneAPI.GetAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}");
+            var result = await TracfoneAPI.GetAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}");
+            _log.LogThis("Get Payment Source Details", "Result: " + JsonConvert.SerializeObject(result));
+            return result;
         }
 
         public async Task<dynamic> GetDeviceDetails(string input, string inputType)
@@ -1539,6 +1576,7 @@ namespace Coneckt.Web
             var auth = await _authorizations.GetResourceMgmtJWT();
 
             var result = await TracfoneAPI.GetAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}");
+            _log.LogThis("Get Device Details", "Result: " + JsonConvert.SerializeObject(result));
             return result;
         }
         public async Task<dynamic> Reactivate(string serialNumber)
@@ -1643,7 +1681,12 @@ namespace Coneckt.Web
 
             var response = await TracfoneAPI.PostAPIResponse(url, $"{auth.TokenType} {auth.AccessToken}", data);
             var responseData = response.Content.ReadAsStringAsync().Result;
+
+            _log.LogThis("Reactivate", "Request Data: " + JsonConvert.SerializeObject(data));
+            _log.LogThis("Reactivate", "Result: " + JsonConvert.SerializeObject(responseData));
+
             return JObject.Parse(responseData);
         }
+
     }
 }

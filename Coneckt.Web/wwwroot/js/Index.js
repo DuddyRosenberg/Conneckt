@@ -403,7 +403,7 @@
                     zip: $('#zip').val(),
                     paymentMeanID: $('#payment').val(),
                     cvv: $('#cvv').val(),
-                    productId: $("#product").val(),
+                    productID: $('#product').val(),
                     productName: productName,
                     billingAddress: {
                         addressLine1: $('#billing-address').val(),
@@ -413,6 +413,7 @@
                         zipCode: $('#billing-zip').val()
                     }
                 };
+                console.log(sendingData);
                 break;
             case 'activate':
                 url = "/home/activate";
@@ -426,7 +427,7 @@
                     zip: $('#zip').val(),
                     paymentMeanID: $('#payment').val(),
                     cvv: $('#cvv').val(),
-                    productId: $("#product").val(),
+                    productID: $("#product").val(),
                     productName: productName,
                     billingAddress: {
                         addressLine1: $('#billing-address').val(),
@@ -501,10 +502,8 @@
                 }
                 break;
         }
-
-        console.log(sendingData);
+        
         $.post(url, sendingData, function (data) {
-            console.log('here');
             console.log(data);
             switch (action) {
                 case 'device_details':
@@ -598,6 +597,8 @@
                         } else {
                             $('#result').append(data['status']['message']);
                         }
+                    } else if (data['value']) {
+                        $('#result').text(data['value']['status']['description']);
                     } else {
                         if (data['status']['description']) {
                             $('#result').text(data['status']['description']);
