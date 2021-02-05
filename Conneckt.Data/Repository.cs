@@ -40,7 +40,19 @@ namespace Conneckt.Data
                         CurrentVKey = reader.Get<string>("CurrentVKey"),
                         Done = (bool)reader["Done"],
                         ResourceIdentifier = reader.Get<string>("ResourceIdentifier"),
-                        ResourceType = reader.Get<string>("ResourceType")
+                        ResourceType = reader.Get<string>("ResourceType"),
+                        ProductID = reader.Get<string>("ProductID"),
+                        PaymentMeanID = reader.Get<string>("PaymentMeanID"),
+                        ProductName = reader.Get<string>("ProductName"),
+                        CVV = reader.Get<string>("CVV"),
+                        BillingAddress = new Address
+                        {
+                            AddressLine1 = reader.Get<string>("AddressLine1"),
+                            City = reader.Get<string>("City"),
+                            StateOrProvince = reader.Get<string>("StateOrProvince"),
+                            Country = reader.Get<string>("Country"),
+                            ZipCode = reader.Get<string>("ZipCode"),
+                        }
                     });
                 }
 
@@ -52,11 +64,11 @@ namespace Conneckt.Data
         {
             using (OleDbConnection connection = new OleDbConnection(_connectionString))
             {
-                OleDbCommand cmd = connection.CreateCommand();
-                connection.Open();
-
                 foreach (BulkData data in bulkDatas)
                 {
+                    OleDbCommand cmd = connection.CreateCommand();
+                    connection.Open();
+
                     if (data.Action == BulkAction.GetDeviceDetails)
                     {
                         if (data.ResponseObj != null)
@@ -83,7 +95,9 @@ namespace Conneckt.Data
                         });
 
                     }
+
                     cmd.ExecuteNonQuery();
+                    connection.Close();
                 }
             }
         }
@@ -127,6 +141,28 @@ namespace Conneckt.Data
 
                 connection.Open();
                 cmd.ExecuteNonQuery();
+            }
+        }
+
+        public List<ProductID> GetProductIDs()
+        {
+            using (var connection = new OleDbConnection(_connectionString))
+            using (var command = connection.CreateCommand())
+            {
+                connection.Open();
+                command.CommandText = "SELECT * FROM PRODUCTS";
+                var reader = command.ExecuteReader();
+
+                var productIds = new List<ProductID>();
+                while (reader.Read())
+                {
+                    productIds.Add(new ProductID
+                    {
+                        ID = (string)reader["ProductId"],
+                        Name = (string)reader["ProductName"]
+                    });
+                }
+                return productIds;
             }
         }
     }

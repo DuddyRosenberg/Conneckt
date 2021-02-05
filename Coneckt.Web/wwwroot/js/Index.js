@@ -472,6 +472,10 @@
                 break;
             case 'deactivate_retain':
                 url = "/home/DeactivateAndRetaineDays";
+                sendingData = {
+                    serial: $('#device').val(),
+                    useLine: $('#line').is(':checked')
+                }
                 break;
             case 'deactivate_past':
                 url = "/home/DeactivatePastDue";

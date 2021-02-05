@@ -33,25 +33,29 @@ namespace Coneckt.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Get Payment Sources
-            var paymentSources = await _tracfone.GetPaymetSources();
-            return View(paymentSources);
+            var repo = new Repository(_connectionString);
+            var model = new IndexViewModel
+            {
+                PaymentSources = await _tracfone.GetPaymetSources(),
+                ProductIDs = repo.GetProductIDs()
+            };
+            return View(model);
         }
 
         public async Task<IActionResult> AddDevice(AddDeviceActionModel model)
         {
             //Add Device
             var addDeviceResult = await AddDeviceInner(model);
-            return addDeviceResult;
+            return Json(addDeviceResult);
 
         }
 
-        public async Task<IActionResult> AddDeviceInner(AddDeviceActionModel model)
+        public async Task<dynamic> AddDeviceInner(AddDeviceActionModel model)
         {
             //BYOP Eligibility
             dynamic byopEligibilityResult = null;
             string byopEligibilityStatus = "";
-            while (byopEligibilityStatus != "0" && byopEligibilityStatus != "11023")
+            while (byopEligibilityStatus != "0" && byopEligibilityStatus != "11023" && byopEligibilityStatus != "10008")
             {
                 byopEligibilityResult = await _tracfone.CheckBYOPEligibility(model.Serial);
                 byopEligibilityStatus = byopEligibilityResult["status"]["code"].ToString();
@@ -68,7 +72,7 @@ namespace Coneckt.Web.Controllers
             {
                 //Add Device
                 var addDeviceResult2 = await _tracfone.AddDevice(model.Serial);
-                return Json(addDeviceResult2);
+                return addDeviceResult2;
             }
 
             //BYOP Registration
@@ -78,12 +82,13 @@ namespace Coneckt.Web.Controllers
             if (byopRegistrationStatus != "0")
             {
                 byopRegistrationResult["request"] = "BYOP Registration Failed";
-                return Json(byopRegistrationResult);
+                return byopRegistrationResult;
             }
 
             //Add Device
             var addDeviceResult = await _tracfone.AddDevice(model.Serial);
-            return Json(addDeviceResult);
+            var response = addDeviceResult.Content.ReadAsStringAsync().Result;
+            return response;
         }
 
         public async Task<IActionResult> DeleteDevice(DeleteActionModel model)
@@ -94,36 +99,26 @@ namespace Coneckt.Web.Controllers
 
         public async Task<IActionResult> Activate(ActivateActionModel model)
         {
-            var loginCookie = await _tracfone.Login();
-            var estOrder = await _tracfone.EstimateOrder(loginCookie, model);
-            var paymentMean = await _tracfone.GetPaymentSourceDetails(model.PaymentMeanID);
-            var response = new PaymentMean
-            {
-                ID = model.PaymentMeanID,
-                AccountHolderName = paymentMean.response.paymentSourceDetail[0].customerDetails.firstName + " " + paymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
-                FirstName = paymentMean.response.paymentSourceDetail[0].customerDetails.firstName,
-                LastName = paymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
-                IsDefault = true,
-                IsExisting = "FALSE",
-                Type = "CREDITCARD",
-                CreditCard = new CreditCard
-                {
-                    Type = paymentMean.response.paymentSourceDetail[0].cardDetails.cardType,
-                    Year = paymentMean.response.paymentSourceDetail[0].cardDetails.expirationYear,
-                    Month = paymentMean.response.paymentSourceDetail[0].cardDetails.expirationMonth,
-                    Cvv = model.CVV,
-                },
-                BillingAddress = model.BillingAddress
-            };
-            var submitOrder = await _tracfone.SubmitOrder(loginCookie, model, estOrder, response);
             var result = await _tracfone.Activate(model);
             return Json(result);
         }
 
         public async Task<IActionResult> BuyAirtime(ActivateActionModel model)
         {
+
+            // Login
             var loginCookie = await _tracfone.Login();
+
+            // Estimate Order
             var estOrder = await _tracfone.EstimateOrder(loginCookie, model);
+            if (estOrder.status != null)
+            {
+                dynamic estError = estOrder;
+                estError["request"] = "Estimate Order Failed";
+                return Json(estError);
+            }
+
+            // Submit Order
             var paymentMean = await _tracfone.GetPaymentSourceDetails(model.PaymentMeanID);
             var response = new PaymentMean
             {
@@ -149,20 +144,12 @@ namespace Coneckt.Web.Controllers
 
         public async Task<IActionResult> ExternalPort(PortActionModel model)
         {
-            var loginCookie = await _tracfone.Login();
-            var estOrder = await _tracfone.EstimateOrder(loginCookie, model);
-            var paymentMean = (PaymentMean)await _tracfone.GetPaymentSourceDetails(model.PaymentMeanID);
-            await _tracfone.SubmitOrder(loginCookie, model, estOrder, paymentMean);
             var result = await _tracfone.ExternalPort(model);
             return Json(result);
         }
 
         public async Task<IActionResult> InternalPort(PortActionModel model)
         {
-            var loginCookie = await _tracfone.Login();
-            var estOrder = await _tracfone.EstimateOrder(loginCookie, model);
-            var paymentMean = (PaymentMean)await _tracfone.GetPaymentSourceDetails(model.PaymentMeanID);
-            await _tracfone.SubmitOrder(loginCookie, model, estOrder, paymentMean);
             var result = await _tracfone.InternalPort(model);
             return Json(result);
         }
@@ -182,7 +169,7 @@ namespace Coneckt.Web.Controllers
         public async Task<IActionResult> ChangeSIM(PortActionModel model)
         {
             var result = await _tracfone.ChangeSIM(model);
-            return Json(result["status"]["message"].ToString());
+            return Json(result);
         }
 
         public async Task<IActionResult> DeactivateAndRetaineDays(DeleteActionModel model)
@@ -194,7 +181,7 @@ namespace Coneckt.Web.Controllers
                 model.Serial = serial;
             }
             var result = await _tracfone.DeactivateAndRetaineDays(model.Serial);
-            return Json(result["status"]["message"].ToString());
+            return Json(result);
         }
 
         public async Task<IActionResult> DeactivatePastDue(DeleteActionModel model)
@@ -206,7 +193,7 @@ namespace Coneckt.Web.Controllers
                 model.Serial = serial;
             }
             var result = await _tracfone.DeactivatePastDue(model.Serial);
-            return Json(result["status"]["message"].ToString());
+            return Json(result);
         }
 
         public async Task<IActionResult> Reactivate(DeleteActionModel model)
@@ -245,11 +232,12 @@ namespace Coneckt.Web.Controllers
 
                             //BYOP Eligibility
                             dynamic byopEligibilityResult = null;
-                            for (int i = 0; i < 3; i++)
+                            string byopEligibilityStatus = "";
+                            while (byopEligibilityStatus != "0" && byopEligibilityStatus != "11023")
                             {
                                 byopEligibilityResult = await _tracfone.CheckBYOPEligibility(addDeviceModel.Serial);
+                                byopEligibilityStatus = byopEligibilityResult["status"]["code"].ToString();
                             }
-                            string byopEligibilityStatus = byopEligibilityResult["status"]["code"].ToString();
 
                             if (byopEligibilityStatus != "0" && byopEligibilityStatus != "10008" && byopEligibilityStatus != "11023")
                             {
@@ -290,51 +278,94 @@ namespace Coneckt.Web.Controllers
                             data.response = addDeviceResults;
 
                             results.Add(addDeviceResults);
-
                             break;
                         case BulkAction.DeleteDevice:
                             _log.LogThis("Bulk Action", "Delete Device");
                             var deleteSerial = data.Serial;
 
-                            var deleteResp = await _tracfone.DeleteDevice(deleteSerial);
+                            var deleteResp = await _tracfone.DeleteDevice(data.Serial);
+                            data.ResponseObj = deleteResp;
                             data.response = JsonConvert.SerializeObject(deleteResp);
                             results.Add(deleteResp);
                             break;
-                        case BulkAction.Activate:
-                            _log.LogThis("Bulk Action", "Activate");
-                            var activateModel = new ActivateActionModel
+                        case BulkAction.BuyAirtime:
+                            _log.LogThis("Bulk Action", "Buy Airtime");
+                            string buyAirtimeResults = "";
+
+                            var buyAirtimeModel = new ActivateActionModel
                             {
                                 Serial = data.Serial,
                                 Sim = data.Sim,
                                 Zip = data.Zip,
+                                PaymentMeanID = data.PaymentMeanID,
+                                ProductID = data.ProductID,
+                                ProductName = data.ProductName,
+                                CVV = data.CVV,
+                                BillingAddress = data.BillingAddress
                             };
 
-                            var loginCookie = await _tracfone.Login();
-                            var estOrder = await _tracfone.EstimateOrder(loginCookie, activateModel);
-                            var paymentMean = await _tracfone.GetPaymentSourceDetails(activateModel.PaymentMeanID);
-                            var response = new PaymentMean
+                            var buyAirtimeLoginCookie = await _tracfone.Login();
+
+                            // Estimate Order
+                            var buyAirtimeEstOrder = await _tracfone.EstimateOrder(buyAirtimeLoginCookie, buyAirtimeModel);
+                            if (buyAirtimeEstOrder.status != null)
                             {
-                                ID = activateModel.PaymentMeanID,
-                                AccountHolderName = paymentMean.response.paymentSourceDetail[0].customerDetails.firstName + " " + paymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
-                                FirstName = paymentMean.response.paymentSourceDetail[0].customerDetails.firstName,
-                                LastName = paymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
+                                dynamic buyAirtimeEstOrderError = buyAirtimeEstOrder;
+                                buyAirtimeEstOrderError["request"] = "Add Device Failed";
+                                buyAirtimeResults += JsonConvert.SerializeObject(buyAirtimeEstOrderError);
+                                data.response = JsonConvert.SerializeObject(buyAirtimeEstOrderError);
+                                results.Add(buyAirtimeEstOrderError);
+                                break;
+                            }
+
+                            // Submit Order
+                            var buyAirtimePaymentMean = await _tracfone.GetPaymentSourceDetails(buyAirtimeModel.PaymentMeanID);
+                            var buyAirtimeResponse = new PaymentMean
+                            {
+                                ID = buyAirtimeModel.PaymentMeanID,
+                                AccountHolderName = buyAirtimePaymentMean.response.paymentSourceDetail[0].customerDetails.firstName + " " + buyAirtimePaymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
+                                FirstName = buyAirtimePaymentMean.response.paymentSourceDetail[0].customerDetails.firstName,
+                                LastName = buyAirtimePaymentMean.response.paymentSourceDetail[0].customerDetails.lastName,
                                 IsDefault = true,
                                 IsExisting = "FALSE",
                                 Type = "CREDITCARD",
                                 CreditCard = new CreditCard
                                 {
-                                    Type = paymentMean.response.paymentSourceDetail[0].cardDetails.cardType,
-                                    Year = paymentMean.response.paymentSourceDetail[0].cardDetails.expirationYear,
-                                    Month = paymentMean.response.paymentSourceDetail[0].cardDetails.expirationMonth,
-                                    Cvv = activateModel.CVV,
+                                    Type = buyAirtimePaymentMean.response.paymentSourceDetail[0].cardDetails.cardType,
+                                    Year = buyAirtimePaymentMean.response.paymentSourceDetail[0].cardDetails.expirationYear,
+                                    Month = buyAirtimePaymentMean.response.paymentSourceDetail[0].cardDetails.expirationMonth,
+                                    Cvv = buyAirtimeModel.CVV,
                                 },
-                                BillingAddress = activateModel.BillingAddress
+                                BillingAddress = buyAirtimeModel.BillingAddress
                             };
-                            var submitOrder = await _tracfone.SubmitOrder(loginCookie, activateModel, estOrder, response);
+                            var buyAirtimeSubmitOrder = await _tracfone.SubmitOrder(buyAirtimeLoginCookie, buyAirtimeModel, buyAirtimeEstOrder, buyAirtimeResponse);
+                            data.response = JsonConvert.SerializeObject(buyAirtimeSubmitOrder);
 
+                            buyAirtimeResults += data.response;
+                            results.Add(buyAirtimeResults);
+                            break;
+                        case BulkAction.Activate:
+                            _log.LogThis("Bulk Action", "Activate");
+                            string activateResults = "";
+
+                            var activateModel = new ActivateActionModel
+                            {
+                                Serial = data.Serial,
+                                Sim = data.Sim,
+                                Zip = data.Zip,
+                                PaymentMeanID = data.PaymentMeanID,
+                                ProductID = data.ProductID,
+                                ProductName = data.ProductName,
+                                CVV = data.CVV,
+                                BillingAddress = data.BillingAddress
+                            };
+
+                            // Activate
                             var activateResp = await _tracfone.Activate(activateModel);
                             data.response = JsonConvert.SerializeObject(activateResp);
-                            results.Add(activateResp);
+                            
+                            activateResults += data.response;
+                            results.Add(activateResults);
                             break;
                         case BulkAction.InternalPort:
                             _log.LogThis("Bulk Action", "Internal Port");
@@ -375,7 +406,8 @@ namespace Coneckt.Web.Controllers
                             {
                                 Serial = data.Serial,
                                 Sim = data.Sim,
-                                Zip = data.Zip
+                                Zip = data.Zip,
+                                CurrentMIN = data.CurrentMIN
                             };
 
                             var changeSIMResp = await _tracfone.ChangeSIM(changeSIMModel);
@@ -384,18 +416,42 @@ namespace Coneckt.Web.Controllers
                             break;
                         case BulkAction.DeactivateAndRetaineDays:
                             _log.LogThis("Bulk Action", "Deactivate Retain Days");
+
+                            if (data.ResourceType == "LINE")
+                            {
+                                var deactivateDeviceDetails = await _tracfone.GetDeviceDetails(data.ResourceIdentifier, "LINE");
+                                var deactivateSerial = deactivateDeviceDetails.resource.physicalResource.serialNumber;
+                                data.Serial = deactivateSerial;
+                            }
+
                             var deactivateAndRetaineDaysReponse = await _tracfone.DeactivateAndRetaineDays(data.Serial);
                             data.response = JsonConvert.SerializeObject(deactivateAndRetaineDaysReponse);
                             results.Add(deactivateAndRetaineDaysReponse);
                             break;
                         case BulkAction.DeactivatePastDue:
                             _log.LogThis("Bulk Action", "Deactivate Past Due");
+
+                            if (data.ResourceType == "LINE")
+                            {
+                                var deactivateDeviceDetails = await _tracfone.GetDeviceDetails(data.ResourceIdentifier, "LINE");
+                                var deactivateSerial = deactivateDeviceDetails.resource.physicalResource.serialNumber;
+                                data.Serial = deactivateSerial;
+                            }
+
                             var deactivatePastDueResponse = await _tracfone.DeactivatePastDue(data.Serial);
                             data.response = JsonConvert.SerializeObject(deactivatePastDueResponse);
                             results.Add(deactivatePastDueResponse);
                             break;
                         case BulkAction.Reactivate:
                             _log.LogThis("Bulk Action", "Reactivate");
+
+                            if (data.ResourceType == "LINE")
+                            {
+                                var reactivateDeviceDetails = await _tracfone.GetDeviceDetails(data.ResourceIdentifier, "LINE");
+                                var reactivateSerial = reactivateDeviceDetails.resource.physicalResource.serialNumber;
+                                data.Serial = reactivateSerial;
+                            }
+
                             var reactivateResponse = await _tracfone.Reactivate(data.Serial); ;
                             data.response = JsonConvert.SerializeObject(reactivateResponse);
                             results.Add(reactivateResponse);

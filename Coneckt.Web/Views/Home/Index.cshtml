@@ -1,5 +1,5 @@
 ﻿@{ ViewData["Title"] = "Home Page"; }
-@model dynamic;
+@model IndexViewModel;
 
 <form>
     <div class="card">
@@ -21,7 +21,6 @@
                 <option value="device_details">Device Details</option>
                 <option value="payment_source_details">Payment Source Details</option>
             </select>
-
             <div class="form-inputs">
                 <input style="margin:2px" class="form-control" id="serial" placeholder="Serial" />
                 <input style="margin:2px" class="form-control" id="sim" placeholder="SIM" />
@@ -30,24 +29,27 @@
                 <input style="margin:2px" class="form-control hidden" id="current-account-number" placeholder="Current Account Number" />
                 <input style="margin:2px" class="form-control hidden" id="current-service-provider" placeholder="Current Service Provider" />
                 <input style="margin:2px" class="form-control hidden" id="v-key" placeholder="V Key" />
-
                 <div class="product hidden">
                     <h6>Product</h6>
                     <select id="product" style="margin:2px;" class="form-control">
                         <option selected="true" disabled="disabled">Select Product</option>
-                        <option value="378">Clearway BYOP Unlimited Talk, Text & Data (1.0GB Data &commat; 4G speed) / 30 Days</option>
-                        <option value="446">Net10 connected Products $5 - 30 day service</option>
-                        <option value="12554">Unlimited talk, text, data with the first 2GB at high-speed then 2G*</option>
+                        @if (Model != null)
+                        {
+                            @foreach (dynamic product in Model.ProductIDs)
+                            {
+                                <option value="@product.ID">@product.Name</option>
+
+                            }
+                        }
                     </select>
                 </div>
-
                 <div class="billing hidden">
                     <h6>Payment</h6>
                     <select id="payment" style="margin:2px;" class="form-control">
                         <option selected="true" disabled="disabled">Select Payment Source</option>
                         @if (Model != null)
                         {
-                            @foreach (dynamic paymentSource in Model)
+                            @foreach (dynamic paymentSource in Model.PaymentSources)
                             {
                                 <option value="@paymentSource">@paymentSource</option>
 
@@ -55,7 +57,6 @@
                         }
                     </select>
                     <input style="margin:2px" class="form-control" id="cvv" placeholder="CVV" />
-
                     <h6>Billing Address</h6>
                     <input style="margin:2px" class="form-control" id="billing-address" placeholder="Address" />
                     <input style="margin:2px" class="form-control" id="billing-city" placeholder="City" />
@@ -63,7 +64,6 @@
                     <input style="margin:2px" class="form-control" id="billing-country" placeholder="Country" />
                     <input style="margin:2px" class="form-control" id="billing-zip" placeholder="Zip Code" />
                 </div>
-
                 <div class="device-type hidden">
                     <div class="form-group w-100 m-1">
                         <div class="form-check form-check-inline">
@@ -76,16 +76,14 @@
                         </div>
                     </div>
                 </div>
-
                 <input style="margin:2px" class="form-control hidden" id="device" placeholder="Device Id" />
                 <input style="margin:2px" class="form-control hidden" id="device-zip" placeholder="Zip Code" />
-
                 <div class="payment hidden">
                     <select id="payment-sources" class="form-control">
                         <option selected="true" disabled="disabled">Select Payment Source</option>
                         @if (Model != null)
                         {
-                            @foreach (dynamic paymentSource in Model)
+                            @foreach (dynamic paymentSource in Model.PaymentSources)
                             {
                                 <option value="@paymentSource">@paymentSource</option>
 
@@ -102,135 +100,120 @@
                 <button style="margin:5px; margin-left: 2px;" id="execute-bulk" type="button" class="btn btn-success">Execute Bulk</button>
             </div>
         </div>
-
         <!--
-        <div class="row card-body">
-            <input style="margin:2px" class="form-control" id="serial" placeholder="Serial" />
-            <button style="margin:2px" id="delete-device" type="button" class="btn btn-primary">Delete Device</button>
-            <input style="margin:2px" class="form-control" id="sim" placeholder="SIM" />
-            <button style="margin:2px" id="add-device" type="button" class="btn btn-primary">Add Device</button>
-            <div class="divider"></div>
-            <input style="margin:2px" class="form-control" id="zip" placeholder="Zip Code" />
-            <input style="margin:2px" class="form-control" id="min" placeholder="Current MDN" />
-            <button style="margin:2px" id="change-sim" type="button" class="btn btn-primary">Change SIM</button>
-            <div class="divider"></div>
-            <input style="margin:2px" class="form-control" id="current-min" placeholder="current MDN" />
-            <input style="margin:2px" class="form-control" id="current-account-number" placeholder="current account number" />
-            <input style="margin:2px" class="form-control" id="current-service-provider" placeholder="current service provider" />
-            <button style="margin:2px" id="internal-port" type="button" class="btn btn-primary">Internal Port</button>
-            <input style="margin:2px" class="form-control" id="v-key" placeholder="V Key" />
-            <button style="margin:2px" id="external-port" type="button" class="btn btn-primary">External Port</button>
-        </div>
-    </div>
-    <div class="card mt-4">
-        <div class="row card-body">
-            <a style="margin:5px; margin-left: 2px;" href="/home/GetAccountDetails" class="btn btn-primary">Get Account Details</a>
-            <button style="margin:5px; margin-left: 2px;" id="execute-bulk" type="button" class="btn btn-success">Execute Bulk</button>
-        </div>
-    </div>
-    <div class="card mt-4">
-        <div class="row card-body">
-            <h5 class="card-title">Activate</h5>
-
-            <input style="margin:2px" class="form-control" id="activate-serial" placeholder="IMEI" />
-            <input style="margin:2px" class="form-control" id="activate-sim" placeholder="SIM" />
-            <input style="margin:2px" class="form-control" id="activate-zip" placeholder="Zip Code" />
-
-            <h6>Product</h6>
-            <select id="activate-product" style="margin:2px;" class="form-control">
-                <option selected="true" disabled="disabled">Select Product</option>
-                <option value="378">Clearway BYOP Unlimited Talk, Text & Data (1.0GB Data &commat; 4G speed) / 30 Days</option>
-                <option value="446">Net10 connected Products $5 - 30 day service</option>
-            </select>
-
-            <h6>Payment</h6>
-            <select id="activate-payment" style="margin:2px;" class="form-control">
-                <option selected="true" disabled="disabled">Select Payment Source</option>
-                @if (Model != null)
-                {
-                    @foreach (dynamic paymentSource in Model)
-                    {
-                        <option value="@paymentSource">@paymentSource</option>
-
-                    }
-                }
-            </select>
-            <input style="margin:2px" class="form-control" id="activate-cvv" placeholder="CVV" />
-
-            <h6>Billing Address</h6>
-            <input style="margin:2px" class="form-control" id="activate-billing-address" placeholder="Address" />
-            <input style="margin:2px" class="form-control" id="activate-billing-city" placeholder="City" />
-            <input style="margin:2px" class="form-control" id="activate-billing-state" placeholder="State" />
-            <input style="margin:2px" class="form-control" id="activate-billing-country" placeholder="Country" />
-            <input style="margin:2px" class="form-control" id="activate-billing-zip" placeholder="Zip Code" />
-            <button style="margin:2px" id="activate" type="button" class="btn btn-primary">Activate</button>
-        </div>
-    </div>
-    <div class="card mt-4">
-        <div class="row card-body">
-            <h5 class="card-title">Account Management</h5>
-
-            <input style="margin:2px" class="form-control" id="am-device" placeholder="Device Id" />
-            <input style="margin:2px" class="form-control" id="am-zip-code" placeholder="Zip Code" />
-            <div class="form-group w-100 m-1">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="device-type" id="am-handset" value="HANDSET" checked>
-                    <label class="form-check-label" for="am-handset">Handset</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="device-type" id="am-line" value="LINE">
-                    <label class="form-check-label" for="am-line">Line</label>
-                </div>
+            <div class="row card-body">
+                <input style="margin:2px" class="form-control" id="serial" placeholder="Serial" />
+                <button style="margin:2px" id="delete-device" type="button" class="btn btn-primary">Delete Device</button>
+                <input style="margin:2px" class="form-control" id="sim" placeholder="SIM" />
+                <button style="margin:2px" id="add-device" type="button" class="btn btn-primary">Add Device</button>
+                <div class="divider"></div>
+                <input style="margin:2px" class="form-control" id="zip" placeholder="Zip Code" />
+                <input style="margin:2px" class="form-control" id="min" placeholder="Current MDN" />
+                <button style="margin:2px" id="change-sim" type="button" class="btn btn-primary">Change SIM</button>
+                <div class="divider"></div>
+                <input style="margin:2px" class="form-control" id="current-min" placeholder="current MDN" />
+                <input style="margin:2px" class="form-control" id="current-account-number" placeholder="current account number" />
+                <input style="margin:2px" class="form-control" id="current-service-provider" placeholder="current service provider" />
+                <button style="margin:2px" id="internal-port" type="button" class="btn btn-primary">Internal Port</button>
+                <input style="margin:2px" class="form-control" id="v-key" placeholder="V Key" />
+                <button style="margin:2px" id="external-port" type="button" class="btn btn-primary">External Port</button>
             </div>
-            <br />
-            <button style="margin:2px" id="deactivate-and-retaine-days" type="button" class="btn btn-primary">Deactivate and Retain Days</button>
-            <button style="margin:2px" id="deactivate-past-due" type="button" class="btn btn-primary">Deactivate Past Due</button>
-            <button style="margin:2px;" id="reactivate" type="button" class="btn btn-primary">Reactivate</button>
         </div>
-    </div>
-    <div class="card mt-4">
-        <div class="row card-body">
-            <h5 class="card-title">Get Balance</h5>
-            <input style="margin:2px" class="form-control" id="phone-number" placeholder="Phone Number" />
-            <button style="margin:2px" class="btn btn-primary" id="get-balance">Get Balance</button>
-        </div>
-    </div>
-    <div class="card mt-4">
-        <div class="row card-body">
-            <h5 class="card-title">Payment Sources</h5>
-            <select id="payment-sources" class="form-control">
-                <option selected="true" disabled="disabled">Select Payment Source</option>
-                @if (Model != null)
-                {
-                    @foreach (dynamic paymentSource in Model)
-                    {
-                        <option value="@paymentSource">@paymentSource</option>
-
-                    }
-                }
-            </select>
-            <button style="margin:5px; margin-left: 2px;" id="payment-details" type="button" class="btn btn-primary">Get Details</button>
-        </div>
-    </div>
-    <div class="card mt-4">
-        <div class="row card-body">
-            <h5 class="card-title">Device Details</h5>
-
-            <input style="margin:2px" class="form-control" id="device-id" placeholder="Device ID" />
-            <div class="form-group w-100 m-1">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="device-type" id="handset" value="HANDSET">
-                    <label class="form-check-label" for="handset">Handset</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="device-type" id="line" value="LINE">
-                    <label class="form-check-label" for="line">Line</label>
-                </div>
+        <div class="card mt-4">
+            <div class="row card-body">
+                <a style="margin:5px; margin-left: 2px;" href="/home/GetAccountDetails" class="btn btn-primary">Get Account Details</a>
+                <button style="margin:5px; margin-left: 2px;" id="execute-bulk" type="button" class="btn btn-success">Execute Bulk</button>
             </div>
-            <br />
-            <button style="margin:5px; margin-left: 2px;" id="device-details" type="button" class="btn btn-primary">Get Details</button>
         </div>
-            -->
+        <div class="card mt-4">
+            <div class="row card-body">
+                <h5 class="card-title">Activate</h5>
+
+                <input style="margin:2px" class="form-control" id="activate-serial" placeholder="IMEI" />
+                <input style="margin:2px" class="form-control" id="activate-sim" placeholder="SIM" />
+                <input style="margin:2px" class="form-control" id="activate-zip" placeholder="Zip Code" />
+
+                <h6>Product</h6>
+                <select id="activate-product" style="margin:2px;" class="form-control">
+                    <option selected="true" disabled="disabled">Select Product</option>
+                    <option value="378">Clearway BYOP Unlimited Talk, Text & Data (1.0GB Data &commat; 4G speed) / 30 Days</option>
+                    <option value="446">Net10 connected Products $5 - 30 day service</option>
+                </select>
+
+                <h6>Payment</h6>
+                <select id="activate-payment" style="margin:2px;" class="form-control">
+                    <option selected="true" disabled="disabled">Select Payment Source</option>
+                   
+                </select>
+                <input style="margin:2px" class="form-control" id="activate-cvv" placeholder="CVV" />
+
+                <h6>Billing Address</h6>
+                <input style="margin:2px" class="form-control" id="activate-billing-address" placeholder="Address" />
+                <input style="margin:2px" class="form-control" id="activate-billing-city" placeholder="City" />
+                <input style="margin:2px" class="form-control" id="activate-billing-state" placeholder="State" />
+                <input style="margin:2px" class="form-control" id="activate-billing-country" placeholder="Country" />
+                <input style="margin:2px" class="form-control" id="activate-billing-zip" placeholder="Zip Code" />
+                <button style="margin:2px" id="activate" type="button" class="btn btn-primary">Activate</button>
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="row card-body">
+                <h5 class="card-title">Account Management</h5>
+
+                <input style="margin:2px" class="form-control" id="am-device" placeholder="Device Id" />
+                <input style="margin:2px" class="form-control" id="am-zip-code" placeholder="Zip Code" />
+                <div class="form-group w-100 m-1">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="device-type" id="am-handset" value="HANDSET" checked>
+                        <label class="form-check-label" for="am-handset">Handset</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="device-type" id="am-line" value="LINE">
+                        <label class="form-check-label" for="am-line">Line</label>
+                    </div>
+                </div>
+                <br />
+                <button style="margin:2px" id="deactivate-and-retaine-days" type="button" class="btn btn-primary">Deactivate and Retain Days</button>
+                <button style="margin:2px" id="deactivate-past-due" type="button" class="btn btn-primary">Deactivate Past Due</button>
+                <button style="margin:2px;" id="reactivate" type="button" class="btn btn-primary">Reactivate</button>
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="row card-body">
+                <h5 class="card-title">Get Balance</h5>
+                <input style="margin:2px" class="form-control" id="phone-number" placeholder="Phone Number" />
+                <button style="margin:2px" class="btn btn-primary" id="get-balance">Get Balance</button>
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="row card-body">
+                <h5 class="card-title">Payment Sources</h5>
+                <select id="payment-sources" class="form-control">
+                    <option selected="true" disabled="disabled">Select Payment Source</option>
+                   
+                </select>
+                <button style="margin:5px; margin-left: 2px;" id="payment-details" type="button" class="btn btn-primary">Get Details</button>
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="row card-body">
+                <h5 class="card-title">Device Details</h5>
+
+                <input style="margin:2px" class="form-control" id="device-id" placeholder="Device ID" />
+                <div class="form-group w-100 m-1">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="device-type" id="handset" value="HANDSET">
+                        <label class="form-check-label" for="handset">Handset</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="device-type" id="line" value="LINE">
+                        <label class="form-check-label" for="line">Line</label>
+                    </div>
+                </div>
+                <br />
+                <button style="margin:5px; margin-left: 2px;" id="device-details" type="button" class="btn btn-primary">Get Details</button>
+            </div>
+                -->
     </div>
 </form>
 <div>

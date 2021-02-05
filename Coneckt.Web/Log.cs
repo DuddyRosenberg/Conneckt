@@ -12,8 +12,8 @@ namespace Coneckt.Web
         {
             var dateTime = DateTime.Now.ToString();
             logMessage = dateTime + " - [Action: " + action + "] " + logMessage;
-            Console.WriteLine(logMessage);
-            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(FileDate() + ".txt", true))
+            //Console.WriteLine(logMessage);
+            using (System.IO.StreamWriter writer = new System.IO.StreamWriter("../" + FileDate() + ".txt", true))
             {
                 writer.WriteLine(logMessage);
                 writer.WriteLine();

@@ -20,5 +20,10 @@ namespace Conneckt.Data
         public string ResourceIdentifier { get; set; }
         public string ResourceType { get; set; }
         public dynamic ResponseObj { get; set; }
+        public string PaymentMeanID { get; set; }
+        public string ProductID { get; set; }
+        public string ProductName { get; set; }
+        public string CVV { get; set; }
+        public Address BillingAddress { get; set; }
     }
 }

@@ -8,6 +8,7 @@ namespace Conneckt.Data
     {
         AddDevice,
         DeleteDevice,
+        BuyAirtime,
         Activate,
         ExternalPort,
         InternalPort,
